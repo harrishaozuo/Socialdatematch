@@ -1,47 +1,243 @@
-import { quote, filterActivities, validateActivity } from './logic.js';
-const $ = s => document.querySelector(s);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const today = offset => { const d = new Date(); d.setDate(d.getDate()+offset); return new Intl.DateTimeFormat('en-CA',{timeZone:'Australia/Melbourne',year:'numeric',month:'2-digit',day:'2-digit'}).format(d); };
-const samples = [
-  {id:'s1',title:'周末火锅局，就差一个你',category:'美食',area:'CBD',mode:'免费搭子',name:'小林',emoji:'🍲',avatar:'👩🏻',color:'#eacbbc',description:'一起吃热腾腾的火锅，聊聊在墨尔本的生活。欢迎新朋友，餐费 AA。',date:today(2),time:'18:30',rate:0,cost:'餐费 AA，每人预计 A$35–50',bio:'来墨尔本两年，喜欢探店和认识新朋友。',tags:'探店 · 美食 · 聊天'},
-  {id:'s2',title:'陪你慢慢逛 NGV，看一场展',category:'艺术',area:'CBD',mode:'付费陪伴',name:'Emma',emoji:'🖼️',avatar:'👩🏽',color:'#cbd6ba',description:'一起看展、聊设计，也可以顺路喝杯咖啡。按小时预约活动陪伴。',date:today(3),time:'14:00',rate:25,cost:'付费特展门票及咖啡各自支付',bio:'喜欢艺术和摄影，中文、英文都可以交流。',tags:'艺术 · 摄影 · 咖啡'},
-  {id:'s3',title:'羽毛球双打，快乐出汗',category:'运动',area:'Clayton',mode:'免费搭子',name:'阿哲',emoji:'🏸',avatar:'👨🏻',color:'#d9dca9',description:'休闲双打，不卷水平。带上球拍，一起运动！场地费用平均分担。',date:today(1),time:'19:00',rate:0,cost:'场地费 AA，每人预计 A$12–18',bio:'在 Clayton 工作，周末喜欢打球和徒步。',tags:'羽毛球 · 徒步 · 运动'},
-  {id:'s4',title:'Carlton 咖啡与街区漫步',category:'闲逛',area:'Carlton',mode:'付费陪伴',name:'Lucas',emoji:'☕',avatar:'🧑🏻',color:'#d5c7b5',description:'在 Lygon Street 找一家咖啡店，散步聊聊。公共场所见面，轻松自在。',date:today(2),time:'11:00',rate:20,cost:'饮品与交通各自支付',bio:'喜欢城市漫步、音乐和小众咖啡馆。',tags:'咖啡 · 城市漫步 · 音乐'},
-  {id:'s5',title:'桌游新手局，一起破冰',category:'娱乐',area:'CBD',mode:'免费搭子',name:'圆圆',emoji:'🎲',avatar:'👩🏻‍🦱',color:'#d7ccdf',description:'规则有人教，新手也能玩。来一场轻松的桌游，认识几个新朋友。',date:today(4),time:'16:00',rate:0,cost:'店内入场费各自支付，预计 A$15',bio:'桌游爱好者，喜欢组织小型聚会。',tags:'桌游 · 电影 · 聚会'},
-  {id:'s6',title:'周末逛市场，发现小美好',category:'闲逛',area:'CBD',mode:'免费搭子',name:'Jess',emoji:'🌷',avatar:'👩🏼',color:'#e5d5bd',description:'一起逛 Queen Victoria Market，买花、尝小吃，享受悠闲的周末。',date:today(5),time:'10:00',rate:0,cost:'购物、餐饮和交通各自支付',bio:'刚来墨尔本，希望认识喜欢生活的朋友。',tags:'市集 · 花艺 · 生活'}
-];
-function load(key) { try { const data=JSON.parse(localStorage.getItem(key)||'[]'); return Array.isArray(data)?data:[]; } catch { return []; } }
-let own=load('mates.activities'), bookings=load('mates.bookings'), page='discover';
-let filters={category:'全部',area:'全部区域',mode:'全部方式',query:''};
-const all=()=>[...own,...samples];
-function persist(key,value){ try{localStorage.setItem(key,JSON.stringify(value));return true;}catch{toast('浏览器无法保存数据，请检查存储设置');return false;} }
-function toast(message){$('.toast')?.remove();const el=document.createElement('div');el.className='toast';el.setAttribute('role','status');el.textContent=message;document.body.append(el);setTimeout(()=>el.remove(),3500);}
-const options=(items,selected)=>items.map(x=>`<option ${x===selected?'selected':''}>${esc(x)}</option>`).join('');
-function render(){
- $('#app').innerHTML=`<header><div class="brand"><span>↗</span>碰个面</div><nav><button data-page="discover" class="${page==='discover'?'active':''}">发现搭子</button><button data-page="bookings" class="${page==='bookings'?'active':''}">我的预约${bookings.length?` (${bookings.length})`:''}</button><button data-page="guide" class="${page==='guide'?'active':''}">平台指南</button><span class="location">◎ 墨尔本 · Melbourne</span></nav><button class="primary" data-action="publish">＋ 发布活动</button></header><main>${page==='discover'?discover():page==='bookings'?bookingPage():guide()}<footer><span>碰个面 · 让相遇从一件小事开始</span><span>墨尔本华人社区 · 18 岁以上 · 原型 v0.1</span></footer></main>`;
- document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{page=b.dataset.page;render();});
- document.querySelectorAll('[data-action="publish"]').forEach(b=>b.onclick=publish);
- document.querySelectorAll('[data-category]').forEach(b=>b.onclick=()=>{filters.category=b.dataset.category;render();});
- $('#area')?.addEventListener('change',e=>{filters.area=e.target.value;render();});
- $('#mode')?.addEventListener('change',e=>{filters.mode=e.target.value;render();});
- $('#search')?.addEventListener('input',e=>{filters.query=e.target.value;renderCards();});
- bindCards();
- $('[data-action="browse"]')?.addEventListener('click',()=>$('#activities').scrollIntoView({behavior:'smooth'}));
- document.querySelectorAll('[data-cancel]').forEach(b=>b.onclick=()=>cancelBooking(b.dataset.cancel));
- document.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>removeActivity(b.dataset.remove));
+import { filterActivities, validateActivity } from './logic.js';
+import { bookingBreakdown, filterProfiles, validateProfile, validateReservation, MelbourneDate, PLATFORM_FEE_BPS } from './marketplace.js';
+import { sampleProfiles, sampleActivities, weekdays, services, areas } from './data.js';
+import { esc, money, options, icon, portrait } from './ui.js';
+
+const $ = selector => document.querySelector(selector);
+const read = key => { try { const value = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(value) ? value : []; } catch { return []; } };
+let ownActivities = read('mates.activities');
+let activityBookings = read('mates.bookings');
+let myProfiles = read('mates.profiles');
+let orders = read('mates.orders');
+let favorites = read('mates.favorites');
+let incoming = read('mates.incoming');
+let filters = { query: '', service: '全部', area: '全部区域', gender: '不限', maxRate: 200, sort: '推荐' };
+let activityFilter = { category: '全部', area: '全部区域', mode: '全部方式', query: '' };
+let favoritesOnly = false;
+let orderTab = 'outgoing';
+let editing = false;
+let installPrompt;
+const feePercent = PLATFORM_FEE_BPS / 100;
+const profileList = () => [...myProfiles, ...sampleProfiles];
+const getProfile = id => profileList().find(p => p.id === id);
+const allActivities = () => [...ownActivities, ...sampleActivities];
+const makeId = () => crypto.randomUUID();
+const save = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch { toast('保存失败：浏览器存储空间不足，请减少照片或检查设置'); return false; } };
+const isOwn = p => myProfiles.some(x => x.id === p.id);
+function toast(message) {
+  $('.toast')?.remove();
+  const node = document.createElement('div'); node.className = 'toast'; node.setAttribute('role', 'status'); node.textContent = message;
+  document.body.append(node); setTimeout(() => node.remove(), 3500);
 }
-function discover(){return `<section class="hero"><div><div class="eyebrow">HELLO MELBOURNE · 你好，新朋友</div><h1>好时光，<br>找个人<em>一起过。</em></h1><p class="intro">想吃火锅、逛展，还是周末出去走走？<br>在墨尔本，找到和你同频的华人搭子。</p><div class="hero-actions"><button class="primary" data-action="browse">找个搭子 ↗</button><button class="secondary" data-action="publish">发布我的计划 ＋</button></div><div class="stats"><span><b>◎</b> 墨尔本先行</span><span><b>♡</b> 免费搭子 & 付费陪伴</span><span><b>✳</b> 从共同兴趣开始</span></div></div><div class="hero-art" role="img" aria-label="在墨尔本和新朋友相遇的插画"><div class="art-sun"></div><div class="skyline">${'<i></i>'.repeat(9)}</div><div class="art-people">🧑🏻‍🤝‍🧑🏽</div><div class="art-label">周末有空吗？一起出去玩 🌿</div><div class="art-label two">下一次相遇，就在墨尔本 ✨</div></div></section><div class="notice"><div>🌱 <strong>从一场活动，认识一个新朋友。</strong> 免费搭子各自支付或 AA；付费陪伴提前约定时长与费用。</div><span>原型体验 · 资料为示例 · 无真实支付</span></div><section id="activities"><div class="section-head"><div><h2>发现你的下一次相遇</h2><p>不用等大家都有空，你的计划也能有人同行。</p></div><span class="small">墨尔本当地时间</span></div><div class="filters"><div class="tabs">${['全部','美食','娱乐','运动','艺术','闲逛'].map(c=>`<button data-category="${c}" class="${filters.category===c?'selected':''}">${{全部:'✳',美食:'🍜',娱乐:'🎲',运动:'🏸',艺术:'🎨',闲逛:'☕'}[c]} ${c}</button>`).join('')}</div><div class="selects"><select id="area" aria-label="区域">${options(['全部区域','CBD','Carlton','Clayton'],filters.area)}</select><select id="mode" aria-label="活动方式">${options(['全部方式','免费搭子','付费陪伴'],filters.mode)}</select></div></div><input id="search" type="search" placeholder="搜索活动、兴趣或昵称…" aria-label="搜索活动" value="${esc(filters.query)}"><div class="grid" id="cards">${cards()}</div></section><section class="how"><div><div class="eyebrow">HOW IT WORKS</div><h2 style="margin-top:10px">见面，其实很简单。</h2></div><div><span class="number">01 / 找到同频的人</span><p>按兴趣和区域挑活动，看看对方的介绍与费用说明。</p></div><div><span class="number">02 / 约定一个计划</span><p>申请同行或预约陪伴。真实版本将由对方确认后再安排见面。</p></div><div><span class="number">03 / 安心享受相遇</span><p>选择公共场所，提前说明边界。每一场活动都尊重双方意愿。</p></div></section>`;}
-function cards(){const items=filterActivities(all(),filters);return items.length?items.map(a=>`<article class="card"><div class="cover" style="--color:${esc(a.color)}"><span class="badge">${esc(a.mode)}${a.id.startsWith('s')?' · 示例':''}</span><span>${esc(a.emoji)}</span><span class="area">◎ ${esc(a.area)}</span></div><div class="card-body"><h3>${esc(a.title)}</h3><div class="description">${esc(a.description)}</div><div class="meta">◷ ${esc(a.date)} · ${esc(a.time)} &nbsp; / &nbsp; ${esc(a.category)}</div><div class="person"><span class="avatar">${esc(a.avatar)}</span><span>${esc(a.name)} <span class="small">· ${a.id.startsWith('s')?'示例资料':'我的发布'}</span></span></div><div class="card-bottom"><div class="price">${a.mode==='免费搭子'?'免费搭子':`A$${a.rate}`} <small>${a.mode==='免费搭子'?'活动开销另计':'/ 小时'}</small></div><button data-detail="${esc(a.id)}">${a.id.startsWith('u')?'查看我的活动':'了解一下'} ↗</button></div></div></article>`).join(''):'<div class="empty">暂时没有符合条件的活动。换个筛选，或发布你的计划。</div>';}
-function renderCards(){$('#cards').innerHTML=cards();bindCards();}
-function bindCards(){document.querySelectorAll('[data-detail]').forEach(b=>b.onclick=()=>detail(b.dataset.detail));}
-let previousFocus;
-function modal(content){previousFocus=document.activeElement;const backdrop=document.createElement('div');backdrop.className='dialog-backdrop';backdrop.innerHTML=`<section class="dialog" role="dialog" aria-modal="true" aria-label="活动操作"><div class="dialog-head"><span class="eyebrow">碰个面 · MELBOURNE</span><button class="close" aria-label="关闭">×</button></div>${content}</section>`;document.body.append(backdrop);backdrop.querySelector('.close').onclick=close;backdrop.onclick=e=>{if(e.target===backdrop)close();};backdrop.addEventListener('keydown',e=>{if(e.key==='Escape')close();if(e.key==='Tab'){const els=[...backdrop.querySelectorAll('button,input,select,textarea')].filter(x=>!x.disabled);const first=els[0],last=els.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}});backdrop.querySelector('.close').focus();}
-function close(){$('.dialog-backdrop')?.remove();previousFocus?.focus();}
-function detail(id){const a=all().find(a=>a.id===id);if(!a)return;modal(`<h3>${esc(a.title)}</h3><p>◎ ${esc(a.area)} · ${esc(a.date)} ${esc(a.time)}<br>${esc(a.description)}</p><div class="info-panel"><div class="person"><span class="avatar">${esc(a.avatar)}</span><strong>${esc(a.name)}</strong></div><p>${esc(a.bio)}</p><span class="small">${esc(a.tags)}</span></div><p><strong>费用说明</strong><br>${a.rate?`陪伴费 A$${a.rate}/小时，预约 1–8 小时。`:'不收陪伴费。'}${esc(a.cost)}</p><p class="small">${a.id.startsWith('s')?'此资料为产品演示，未经身份验证。预约仅保存在你的浏览器，不会通知真实的人。':'这是你在当前浏览器发布的活动，其他用户暂时看不到。'}</p>${a.id.startsWith('u')?`<button class="secondary full" id="remove-own">删除我的活动</button>`:`<button class="primary full" id="reserve">${a.rate?'模拟预约陪伴':'申请同行'}</button>`}`);$('#reserve')?.addEventListener('click',()=>{close();reserve(a);});$('#remove-own')?.addEventListener('click',()=>{close();removeActivity(id);});}
-function reserve(a){if(bookings.some(b=>b.activityId===a.id&&b.status!=='已取消')){toast('你已经申请过这个活动，请在我的预约中查看');return;}modal(`<h3>${a.rate?'预约活动陪伴':'申请加入活动'}</h3><p>${esc(a.title)} · ${esc(a.name)}<br>${esc(a.date)} ${esc(a.time)} · ${esc(a.area)}</p><form id="reserve-form">${a.rate?`<label>陪伴时长<select name="hours" id="hours">${[1,2,3,4,5,6,7,8].map(n=>`<option value="${n}">${n} 小时</option>`).join('')}</select></label>`:''}<label>给对方的留言<textarea name="message" maxlength="300" placeholder="简单介绍自己，或说说你的活动期待" required></textarea></label><div class="total"><span>${a.rate?'预计陪伴费':'陪伴费'}</span><strong id="amount">${a.rate?`A$${a.rate}`:'A$0'}</strong></div><p class="small">${esc(a.cost)}。此为模拟申请，不扣款，也不产生真实订单。</p><label class="check"><input type="checkbox" required><span>我已满 18 岁，同意尊重对方边界，并在公共场所见面。</span></label><button class="primary full" type="submit">提交模拟申请</button></form>`);$('#hours')?.addEventListener('change',e=>$('#amount').textContent=`A$${quote(a.rate,Number(e.target.value))}`);$('#reserve-form').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);const message=String(f.get('message')).trim();if(!message){toast('请填写留言');return;}const hours=a.rate?Number(f.get('hours')):1;const booking={id:crypto.randomUUID(),activityId:a.id,title:a.title,name:a.name,date:a.date,time:a.time,area:a.area,hours,total:quote(a.rate,hours),message,status:'待对方确认（模拟）'};const next=[booking,...bookings];if(!persist('mates.bookings',next))return;bookings=next;close();page='bookings';render();toast('申请已保存在本机，等待确认是演示状态');};}
-function publish(){modal(`<h3>把你的计划分享出来</h3><p>先从一件想做的小事开始。发布内容仅保存在当前浏览器。</p><form id="publish-form"><label>你的昵称<input name="name" maxlength="20" placeholder="大家怎么称呼你" required></label><label>活动标题<input name="title" maxlength="40" placeholder="例如：周日下午找人一起喝咖啡" required></label><div class="row"><label>活动类型<select name="category">${options(['美食','娱乐','运动','艺术','闲逛'])}</select></label><label>区域<select name="area">${options(['CBD','Carlton','Clayton'])}</select></label></div><div class="row"><label>日期<input type="date" name="date" min="${today(0)}" value="${today(1)}" required></label><label>开始时间<input type="time" name="time" value="14:00" required></label></div><label>活动方式<select name="mode" id="publish-mode">${options(['免费搭子','付费陪伴'])}</select></label><label id="rate-label" hidden>陪伴时薪（澳元）<input name="rate" type="number" min="10" max="200" step="1" value="20"></label><label>活动说明<textarea name="description" maxlength="500" placeholder="想做什么？在哪里见面？希望找什么样的搭子？请勿填写私人联系方式。" required></textarea></label><label>活动开销<input name="cost" maxlength="150" placeholder="例如：餐费 AA，每人预计 A$30" required></label><label class="check"><input type="checkbox" required><span>我已满 18 岁，活动在公共场所进行，不提供性服务，不承诺恋爱关系。</span></label><p id="publish-error" class="error" role="alert"></p><button type="submit" class="primary full">发布到本机原型</button></form>`);$('#publish-mode').onchange=e=>{$('#rate-label').hidden=e.target.value!=='付费陪伴';};$('#publish-form').onsubmit=e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target));const a={...f,rate:f.mode==='免费搭子'?0:Number(f.rate)};const error=validateActivity(a);if(error){$('#publish-error').textContent=error;return;}a.id='u'+crypto.randomUUID();a.emoji={美食:'🍲',娱乐:'🎲',运动:'🏸',艺术:'🖼️',闲逛:'☕'}[a.category];a.avatar='🙂';a.color='#d4dfc3';a.bio='墨尔本的新朋友，期待一起参加活动。';a.tags=a.category;const next=[a,...own];if(!persist('mates.activities',next))return;own=next;close();page='discover';filters={category:'全部',area:'全部区域',mode:'全部方式',query:''};render();toast('活动已发布到当前浏览器');};}
-function bookingPage(){return `<div class="page-title"><div class="eyebrow">YOUR PLANS</div><h1 style="font-size:36px">我的预约</h1><p>这里保存你的模拟申请。尚未接入账号、真实订单和对方确认。</p></div>${bookings.length?bookings.map(b=>`<article class="booking"><div><span class="status">${esc(b.status)}</span><h3>${esc(b.title)}</h3><p>${esc(b.name)} · ${esc(b.area)} · ${esc(b.date)} ${esc(b.time)}</p><p>预计陪伴费 A$${b.total}${b.total?` · ${b.hours} 小时`:''} · 活动开销另计</p><p>我的留言：${esc(b.message)}</p></div>${b.status==='已取消'?'<span class="small">已取消 · 无实际扣款</span>':`<button class="secondary" data-cancel="${esc(b.id)}">取消申请</button>`}</article>`).join(''):'<div class="empty">还没有预约。去发现页挑一个感兴趣的活动吧。</div>'}<h2 style="margin-top:40px;font-size:22px">我的发布</h2>${own.length?own.map(a=>`<article class="booking"><div><h3>${esc(a.title)}</h3><p>${esc(a.date)} ${esc(a.time)} · ${esc(a.area)} · ${esc(a.mode)}</p></div><button class="secondary" data-remove="${esc(a.id)}">删除活动</button></article>`).join(''):'<p class="small">你还没有发布活动。</p>'}`;}
-function cancelBooking(id){modal('<h3>取消这次申请？</h3><p>取消后可以重新申请。原型没有实际扣款或退款。</p><button class="primary full" id="confirm-cancel">确认取消</button>');$('#confirm-cancel').onclick=()=>{const next=bookings.map(b=>b.id===id?{...b,status:'已取消'}:b);if(!persist('mates.bookings',next))return;bookings=next;close();render();toast('申请已取消');};}
-function removeActivity(id){modal('<h3>删除我的活动？</h3><p>删除后不会显示在当前浏览器的活动列表中。</p><button class="primary full" id="confirm-remove">确认删除</button>');$('#confirm-remove').onclick=()=>{const next=own.filter(a=>a.id!==id);if(!persist('mates.activities',next))return;own=next;close();render();toast('活动已删除');};}
-function guide(){return `<div class="page-title"><div class="eyebrow">MEET WITH RESPECT</div><h1 style="font-size:36px">让每一次相遇，都更安心。</h1><p>面向墨尔本华人的兴趣活动与陪伴平台，先从公共场所的一次见面开始。</p></div>${[['两种方式，费用清楚','免费搭子不收陪伴费，餐饮、场地等开销由参与者提前约定 AA 或各自支付。付费活动陪伴按澳元时薪计算，餐饮、门票和交通另行说明。原型暂不收取平台费，也不处理任何付款。'],['预约如何进行','选择活动 → 阅读资料和费用 → 填写留言与时长 → 提交申请 → 等待对方确认。当前原型只实现本机申请和取消；对方确认、聊天、支付、评价需要后端支持。'],['尊重双方的边界','仅面向 18 岁以上成年人。服务是一起参加活动，不提供性服务，不保证恋爱关系。双方都有权拒绝不舒服的要求或结束活动。首次见面选公共场所，并告知信任的人你的安排。'],['上线前必须补齐的保障','真实用户上线前需要账号、身份与年龄核验、举报拉黑、人工客服、隐私政策，以及明确的取消退款和争议处理规则。付费服务上线前需确认维州适用规则及支付平台要求。原型中的人物未经过核验。'],['数据与隐私','发布和预约保存在当前浏览器的 localStorage，换设备或清除浏览器数据后不可恢复。请不要在原型填写身份证件、电话号码、住址、支付资料等敏感信息。']].map(([h,p])=>`<section class="info-panel"><h3>${h}</h3><p>${p}</p></section>`).join('')}`;}
+function route() { return decodeURIComponent(location.hash.slice(1) || 'discover'); }
+function navigate(target) { if (route() === target) render(); else location.hash = target; }
+window.addEventListener('hashchange', () => { closeModal(); editing = false; render(); window.scrollTo({ top: 0, behavior: 'instant' }); });
+const navItems = [['discover', 'discover', '发现'], ['activities', 'activity', '找搭子'], ['orders', 'orders', '预约'], ['me', 'me', '我的']];
+function nav(active, mobile = false) {
+  return `<nav class="${mobile ? 'bottom-nav' : 'desktop-nav'}" aria-label="${mobile ? '手机' : '主'}导航">${navItems.map(([key, glyph, title]) => `<a class="nav-item ${active === key ? 'is-active' : ''}" href="#${key}" ${active === key ? 'aria-current="page"' : ''}><span class="nav-icon">${icon(glyph)}</span><span>${title}</span></a>`).join('')}</nav>`;
+}
+function render() {
+  const current = route();
+  const active = current.startsWith('profile/') ? 'discover' : current;
+  let content;
+  if (current.startsWith('profile/')) content = profilePage(current.split('/')[1]);
+  else if (current === 'activities') content = activitiesPage();
+  else if (current === 'orders') content = ordersPage();
+  else if (current === 'me') content = mePage();
+  else if (current === 'guide') content = guidePage();
+  else content = discoverPage();
+  $('#app').innerHTML = `<header class="app-header"><a href="#discover" class="brand"><span class="brand-mark">↗</span>碰个面<span class="header-location">${icon('pin')} 墨尔本</span></a>${nav(active)}<div class="header-actions"><button class="secondary" data-action="listing">${icon('plus')} 我想接单</button><a class="icon-button" href="#guide" aria-label="平台指南">?</a></div></header><main class="app-main">${content}<footer class="app-footer"><span>碰个面 · 在墨尔本，和喜欢的生活碰面。</span><a href="#guide">规则与费用说明</a><span>成人活动陪伴 · 资料与订单为原型演示</span></footer></main>${nav(active, true)}`;
+  bindCommon();
+  if (active === 'discover' && !current.startsWith('profile/')) bindDiscovery();
+  if (current.startsWith('profile/')) bindProfile(getProfile(current.split('/')[1]));
+  if (current === 'activities') bindActivities();
+  if (current === 'orders') bindOrders();
+  if (current === 'me') bindMe();
+}
+function bindCommon() {
+  document.querySelectorAll('[data-action="listing"]').forEach(button => button.onclick = () => { editing = true; if (route() !== 'me') { location.hash = 'me'; setTimeout(() => { editing = true; render(); }, 0); } else render(); });
+  document.querySelectorAll('[data-favorite]').forEach(button => button.onclick = () => {
+    const id = button.dataset.favorite;
+    const next = favorites.includes(id) ? favorites.filter(x => x !== id) : [...favorites, id];
+    if (!save('mates.favorites', next)) return; favorites = next;
+    button.classList.toggle('selected', favorites.includes(id)); button.setAttribute('aria-pressed', String(favorites.includes(id)));
+    if (favoritesOnly && $('#profile-cards')) renderProfileCards();
+  });
+  document.querySelectorAll('[data-view]').forEach(button => button.onclick = () => navigate(`profile/${button.dataset.view}`));
+  $('#install-app')?.addEventListener('click', installApp);
+}
+function discoverPage() {
+  return `<section class="hero"><div class="hero-copy"><div class="eyebrow">MEET SOMEONE · MAKE A DAY</div><h1>心动的日常，<br>找个人<span>一起过。</span></h1><p class="muted">认识墨尔本的同频新朋友。<br>从吃饭、逛街、看展开始，把时间留给喜欢的生活。</p><div class="hero-stats"><span>自己定价</span><span>按小时预约</span><span>先沟通，再见面</span></div><button class="primary" id="browse-people">看看谁能陪我 ${icon('arrow')}</button><button class="text-button" data-action="listing">我也想展示自己 ↗</button></div><div class="hero-visual" aria-label="个人展示插画"><div class="hero-portrait">${portrait(sampleProfiles[1])}<div class="hero-caption">小鹿 <span>${money(28)} / 小时</span></div></div><div class="hero-portrait">${portrait(sampleProfiles[2])}<div class="hero-caption">Lucas <span>${money(30)} / 小时</span></div></div><div class="hero-pill">✦ 一杯咖啡，开始一段相遇</div></div></section><div class="prototype-note">当前是 App 原型：示例人物使用插画，预约不扣款；你的展示与照片仅保存在当前设备。</div><section id="people"><div class="section-heading"><div><div class="eyebrow">PEOPLE, NOT PLANS</div><h2>先找到让你想见的人</h2></div><span class="muted">墨尔本 · 按兴趣认识</span></div><div class="search-box">${icon('search')}<input type="search" id="profile-search" value="${esc(filters.query)}" placeholder="搜索昵称、兴趣或自我介绍" aria-label="搜索人物"></div><div class="filter-strip">${['全部', ...services].map(s => `<button class="filter-chip ${filters.service === s ? 'selected' : ''}" data-service="${s}">${s}</button>`).join('')}<button class="filter-chip ${favoritesOnly ? 'selected' : ''}" id="favorites-only">${icon('heart')} 收藏</button></div><div class="filter-controls"><select id="profile-area" aria-label="地区">${options(['全部区域', ...areas], filters.area)}</select><select id="profile-gender" aria-label="性别">${options(['不限', '女生', '男生', '其他'], filters.gender)}</select><select id="profile-price" aria-label="最高时薪">${[200, 20, 30, 50].map(v => `<option value="${v}" ${filters.maxRate === v ? 'selected' : ''}>${v === 200 ? '不限价格' : `≤ A$${v} / 小时`}</option>`).join('')}</select><select id="profile-sort" aria-label="排序">${options(['推荐', '价格从低到高', '价格从高到低'], filters.sort)}</select></div><div class="profile-grid" id="profile-cards">${profileCards()}</div></section><div class="dashboard-banner"><div><div class="eyebrow">YOUR TIME, YOUR PRICE</div><h2>把你的个性，变成展示面。</h2><p>上传照片，写下兴趣和服务内容，设定你自己的每小时价格。</p></div><button class="primary" data-action="listing">建立我的展示 ${icon('arrow')}</button></div><div class="install-banner"><div>${icon('discover')} <strong>像 App 一样，放在手机主屏幕。</strong><p class="muted">支持添加到主屏幕。当前版本还不是 App Store / Google Play 安装包。</p></div><button class="secondary" id="install-app">添加到主屏幕</button></div>`;
+}
+function profileCards() {
+  const items = filterProfiles(profileList(), filters).filter(p => !favoritesOnly || favorites.includes(p.id));
+  return items.length ? items.map(p => `<article class="profile-card"><div class="profile-cover"><a class="profile-link" href="#profile/${esc(p.id)}" aria-label="查看${esc(p.name)}的展示">${portrait(p)}</a><span class="sample-label">${p.sample ? '示例插画' : '我的展示'}</span><button class="favorite ${favorites.includes(p.id) ? 'selected' : ''}" data-favorite="${esc(p.id)}" aria-label="收藏${esc(p.name)}" aria-pressed="${favorites.includes(p.id)}">${icon('heart')}</button><div class="profile-overlay"><span>${p.minHours} 小时起约</span></div></div><div class="profile-body"><div class="profile-name"><a href="#profile/${esc(p.id)}"><h3>${esc(p.name)}</h3></a><span>${p.age} · ${esc(p.gender)}</span></div><div class="profile-meta">${icon('pin')} ${esc(p.area)} · 墨尔本</div><div class="interest-tags">${p.services.slice(0, 2).map(s => `<span class="tag">${esc(s)}</span>`).join('')}</div><p class="profile-bio">${esc(p.tagline || p.bio)}</p><div class="profile-footer"><div class="hourly-price">${money(p.rate)}<small>/ 小时</small></div><button class="primary" data-view="${esc(p.id)}">看主页 ${icon('arrow')}</button></div></div></article>`).join('') : '<div class="empty">没有找到符合条件的人。换个筛选，或建立你自己的展示。</div>';
+}
+function renderProfileCards() { $('#profile-cards').innerHTML = profileCards(); bindCommon(); }
+function bindDiscovery() {
+  $('#browse-people').onclick = () => $('#people').scrollIntoView({ behavior: 'smooth' });
+  $('#profile-search').oninput = e => { filters.query = e.target.value; renderProfileCards(); };
+  document.querySelectorAll('[data-service]').forEach(b => b.onclick = () => { filters.service = b.dataset.service; render(); });
+  $('#favorites-only').onclick = () => { favoritesOnly = !favoritesOnly; render(); };
+  for (const [id, key, numeric] of [['profile-area', 'area'], ['profile-gender', 'gender'], ['profile-price', 'maxRate', true], ['profile-sort', 'sort']]) {
+    $(`#${id}`).onchange = e => { filters[key] = numeric ? Number(e.target.value) : e.target.value; renderProfileCards(); };
+  }
+}
+function profilePage(id) {
+  const p = getProfile(id);
+  if (!p) return '<div class="empty">这个展示暂时不存在。<a href="#discover">返回发现</a></div>';
+  const photos = Math.max(1, p.photos?.length || 0);
+  return `<a href="#discover" class="back-button">${icon('back')} 返回发现</a><div class="detail-layout"><div class="detail-gallery"><div class="profile-cover">${portrait(p)}<span class="sample-label">${p.sample ? '示例人物 · 插画展示' : '我的展示 · 仅当前设备'}</span></div>${photos > 1 ? `<div class="photo-preview">${p.photos.slice(1).map((_, index) => portrait(p, index + 1)).join('')}</div>` : ''}</div><section class="detail-panel"><div class="eyebrow">LET’S SPEND A LITTLE TIME TOGETHER</div><div class="detail-title"><h1>${esc(p.name)}<small>${p.age} · ${esc(p.gender)}</small></h1><button class="favorite ${favorites.includes(p.id) ? 'selected' : ''}" data-favorite="${esc(p.id)}" aria-label="收藏${esc(p.name)}" aria-pressed="${favorites.includes(p.id)}">${icon('heart')}</button></div><div class="detail-stats"><span>${icon('pin')} ${esc(p.area)} · 墨尔本</span><span>${esc(p.languages || '普通话')}</span></div><p class="profile-bio">${esc(p.tagline || '期待与你，一起度过好时光。')}</p><div class="detail-block"><h3>认识一下我</h3><p>${esc(p.bio)}</p></div><div class="detail-block"><h3>可以陪你做什么</h3><div class="interest-tags">${p.services.map(s => `<span class="tag">${esc(s)}</span>`).join('')}</div></div><div class="detail-block"><h3>我的可预约日</h3><div class="slot-tags">${p.available.map(d => `<span class="tag">${esc(d)}</span>`).join('')}</div><p class="muted">具体时间以双方确认结果为准，页面不是实时空闲状态。</p></div><div class="guideline"><strong>提前说清楚，见面更自在。</strong><p>活动在公共场所进行。餐饮、门票和交通各自支付或提前约定；陪伴服务不承诺恋爱关系。</p></div><div class="booking-bar"><div class="hourly-price">${money(p.rate)}<small>/ 小时 · ${p.minHours} 小时起</small></div><button class="primary" id="book-profile" ${!isOwn(p) && !p.active ? 'disabled' : ''}>${isOwn(p) ? '编辑我的展示' : p.active ? '预约陪伴' : '暂未上架'} ${icon('arrow')}</button></div>${isOwn(p) ? '' : '<p class="prototype-note">仅模拟申请，不联系真实人物、不扣款。</p>'}</section></div>`;
+}
+function bindProfile(p) {
+  if (!p) return;
+  $('#book-profile').onclick = () => { if (isOwn(p)) { editing = true; navigate('me'); setTimeout(() => { editing = true; render(); }, 0); } else bookProfile(p); };
+}
+let modalFocus;
+function showModal(title, body) {
+  closeModal(); modalFocus = document.activeElement;
+  const wrapper = document.createElement('div'); wrapper.className = 'dialog-backdrop';
+  wrapper.innerHTML = `<section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="dialog-head"><h2 id="dialog-title">${title}</h2><button class="close" aria-label="关闭">×</button></div>${body}</section>`;
+  document.body.append(wrapper);
+  wrapper.querySelector('.close').onclick = closeModal;
+  wrapper.onclick = e => { if (e.target === wrapper) closeModal(); };
+  wrapper.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+    if (e.key !== 'Tab') return;
+    const nodes = [...wrapper.querySelectorAll('button, input, select, textarea, a[href]')].filter(n => !n.disabled && !n.closest('[hidden]'));
+    if (e.shiftKey && document.activeElement === nodes[0]) { e.preventDefault(); nodes.at(-1).focus(); }
+    else if (!e.shiftKey && document.activeElement === nodes.at(-1)) { e.preventDefault(); nodes[0].focus(); }
+  });
+  wrapper.querySelector('.close').focus();
+}
+function closeModal() { $('.dialog-backdrop')?.remove(); modalFocus?.isConnected && modalFocus.focus(); }
+function nextAvailableDate(p) {
+  for (let i = 1; i <= 7; i++) { const date = MelbourneDate(i); const day = new Date(`${date}T12:00:00Z`).getUTCDay(); if (p.available.includes(weekdays[(day + 6) % 7])) return date; }
+  return MelbourneDate(1);
+}
+function bookProfile(p) {
+  if (orders.some(o => o.profileId === p.id && !['已取消', '已完成', '已拒绝'].includes(o.status))) { toast('你已预约过这个人，请先在预约页查看或取消'); return; }
+  showModal(`预约 ${esc(p.name)}`, `<p class="muted">${money(p.rate)} / 小时 · ${p.minHours} 小时起约</p><form id="profile-booking"><label class="field">想一起做什么<select name="service">${options(p.services)}</select></label><div class="row"><label class="field">日期（墨尔本）<input type="date" name="date" min="${MelbourneDate()}" max="${MelbourneDate(60)}" value="${nextAvailableDate(p)}" required></label><label class="field">开始时间<input type="time" name="time" value="14:00" min="09:00" max="22:00" required></label></div><label class="field">预约时长<select name="hours" id="booking-hours">${Array.from({ length: 9 - p.minHours }, (_, n) => n + p.minHours).map(h => `<option value="${h}">${h} 小时</option>`).join('')}</select></label><label class="field">我的留言<textarea name="message" minlength="1" maxlength="300" placeholder="想在哪里见面？介绍一下你的计划。" required></textarea></label><div class="price-list"><div class="price-line"><span>陪伴费</span><span id="booking-math"></span></div><div class="price-line"><span>餐饮、门票、交通</span><span>另行约定</span></div><div class="price-line total"><strong>预计合计</strong><strong id="booking-total"></strong></div></div><p class="income-note">平台佣金由接单方承担，不额外叠加到上述价格。这里是模拟申请，没有付款。</p><label class="check"><input type="checkbox" required><span>我已满 18 岁，同意见面前确认活动与费用，尊重对方意愿。</span></label><p class="error" id="booking-error" role="alert"></p><button class="primary full" type="submit">提交预约申请</button></form>`);
+  const update = () => { const hours = Number($('#booking-hours').value); const breakdown = bookingBreakdown(p.rate, hours, p.minHours); $('#booking-math').textContent = `${money(p.rate)} × ${hours} 小时`; $('#booking-total').textContent = money(breakdown.total); };
+  update(); $('#booking-hours').onchange = update;
+  $('#profile-booking').onsubmit = e => {
+    e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)); f.hours = Number(f.hours); f.message = f.message.trim();
+    const error = validateReservation(p, f); if (error) { $('#booking-error').textContent = error; return; }
+    const o = { ...f, id: makeId(), profileId: p.id, name: p.name, area: p.area, rate: p.rate, status: '待对方确认', ...bookingBreakdown(p.rate, f.hours, p.minHours), createdAt: new Date().toISOString(), sample: true };
+    const next = [o, ...orders]; if (!save('mates.orders', next)) return; orders = next; orderTab = 'outgoing'; closeModal(); navigate('orders'); toast('模拟申请已保存，不会扣款或通知真实人物');
+  };
+}
+function activitiesPage() {
+  return `<div class="page-heading"><div class="eyebrow">DO SOMETHING TOGETHER</div><h1>找搭子，一起玩。</h1><p class="muted">免费结伴也有自己的位置，活动开销提前说清楚。</p></div><div class="section-heading"><h2>最近的计划</h2><button class="primary" id="publish-activity">${icon('plus')} 发布活动</button></div><div class="filter-strip">${['全部', '美食', '娱乐', '运动', '艺术', '闲逛'].map(c => `<button class="filter-chip ${c === activityFilter.category ? 'selected' : ''}" data-category="${c}">${c}</button>`).join('')}</div><div class="activity-grid" id="activity-cards">${activityCards()}</div>`;
+}
+function activityCards() {
+  const items = filterActivities(allActivities(), activityFilter);
+  return items.length ? items.map(a => `<article class="activity-card"><div class="activity-emoji">${esc(a.emoji || '☕')}</div><div><span class="tag">${esc(a.mode || '免费搭子')}${a.id.startsWith('s') ? ' · 示例' : ' · 我的发布'}</span><h3>${esc(a.title)}</h3><p class="muted">${esc(a.description)}</p><div class="activity-meta">${icon('pin')} ${esc(a.area)} · ${esc(a.date)} ${esc(a.time)}</div><p class="muted">${esc(a.cost)}</p><button class="secondary" data-activity="${esc(a.id)}">${a.id.startsWith('u') ? '管理活动' : '申请同行'} ${icon('arrow')}</button></div></article>`).join('') : '<div class="empty">暂时没有该类型的活动，发起你的第一个计划吧。</div>';
+}
+function bindActivities() {
+  $('#publish-activity').onclick = publishActivity;
+  document.querySelectorAll('[data-category]').forEach(b => b.onclick = () => { activityFilter.category = b.dataset.category; render(); });
+  document.querySelectorAll('[data-activity]').forEach(b => b.onclick = () => activityDetails(allActivities().find(a => a.id === b.dataset.activity)));
+}
+function activityDetails(a) {
+  if (a.id.startsWith('u')) { confirmDeleteActivity(a.id); return; }
+  if (activityBookings.some(b => b.activityId === a.id && b.status !== '已取消')) { toast('已申请过此活动，请在预约页查看'); return; }
+  showModal(esc(a.title), `<p class="muted">${esc(a.date)} ${esc(a.time)} · ${esc(a.area)}<br>${esc(a.cost)}</p><form id="activity-join"><label class="field">给发起人的留言<textarea name="message" maxlength="300" required placeholder="简单介绍一下自己"></textarea></label><label class="check"><input type="checkbox" required><span>我已满 18 岁，尊重他人边界，并在公共场所见面。</span></label><p class="prototype-note">模拟申请，仅保存到当前设备，不通知真实人物。</p><button class="primary full" type="submit">提交同行申请</button></form>`);
+  $('#activity-join').onsubmit = e => { e.preventDefault(); const message = String(new FormData(e.target).get('message')).trim(); if (!message) { toast('请填写留言'); return; } const booking = { id: makeId(), activityId: a.id, title: a.title, name: a.name, date: a.date, time: a.time, area: a.area, hours: 1, total: a.rate || 0, message, status: '待对方确认（模拟）' }; const next = [booking, ...activityBookings]; if (!save('mates.bookings', next)) return; activityBookings = next; orderTab = 'outgoing'; closeModal(); navigate('orders'); toast('同行申请已保存'); };
+}
+function publishActivity() {
+  showModal('发起一个免费搭子活动', `<form id="activity-publish"><label class="field">昵称<input name="name" maxlength="24" required></label><label class="field">标题<input name="title" maxlength="40" required placeholder="周末找人一起喝咖啡"></label><div class="row"><label class="field">类型<select name="category">${options(['美食', '娱乐', '运动', '艺术', '闲逛'])}</select></label><label class="field">区域<select name="area">${options(areas)}</select></label></div><div class="row"><label class="field">日期<input type="date" name="date" min="${MelbourneDate()}" value="${MelbourneDate(1)}" required></label><label class="field">时间<input type="time" name="time" value="14:00" required></label></div><label class="field">活动说明<textarea name="description" maxlength="500" required></textarea></label><label class="field">费用分担<input name="cost" maxlength="150" required placeholder="餐费 AA，每人预计 A$30"></label><label class="check"><input type="checkbox" required><span>我已满 18 岁，同意在公共场所见面。</span></label><p class="error" id="activity-error" role="alert"></p><p class="prototype-note">仅保存到本机，付费服务请通过个人展示上架。</p><button class="primary full" type="submit">发布活动</button></form>`);
+  $('#activity-publish').onsubmit = e => { e.preventDefault(); const a = { ...Object.fromEntries(new FormData(e.target)), id: 'u' + makeId(), mode: '免费搭子', rate: 0, emoji: '☕' }; const error = validateActivity(a); if (error) { $('#activity-error').textContent = error; return; } const next = [a, ...ownActivities]; if (!save('mates.activities', next)) return; ownActivities = next; closeModal(); render(); toast('活动已发布到当前设备'); };
+}
+function ordersPage() {
+  const list = orderTab === 'incoming' ? incoming : orders;
+  return `<div class="page-heading"><div class="eyebrow">A LITTLE PLAN TO LOOK FORWARD TO</div><h1>我的预约</h1><p class="muted">申请、确认、见面，把每一步说清楚。当前订单均为模拟。</p></div><div class="filter-strip"><button class="filter-chip ${orderTab === 'outgoing' ? 'selected' : ''}" data-order-tab="outgoing">我预约的</button><button class="filter-chip ${orderTab === 'incoming' ? 'selected' : ''}" data-order-tab="incoming">我接到的 · 演示</button></div>${list.length ? list.map(o => orderCard(o, orderTab === 'incoming')).join('') : `<div class="empty">${orderTab === 'incoming' ? '还没有接单演示。先在“我的”建立展示，再生成演示询价。' : '还没有预约。从一个想见的人开始吧。'}</div>`}${orderTab === 'outgoing' ? `<h2>搭子活动申请</h2>${activityBookings.length ? activityBookings.map(b => `<article class="order-card"><div class="status">${esc(b.status)}</div><h3>${esc(b.title)}</h3><p class="muted">${esc(b.name)} · ${esc(b.area)} · ${esc(b.date)} ${esc(b.time)}</p><p class="muted">留言：${esc(b.message)}</p>${b.total ? `<p>原有活动预计费用 ${money(b.total)} · 无真实付款</p>` : '<span class="tag">免费搭子 · 开销另计</span>'}${b.status !== '已取消' ? `<button class="secondary" data-cancel-activity="${esc(b.id)}">取消活动申请</button>` : ''}</article>`).join('') : '<p class="muted">还没有活动申请。</p>'}` : '<p class="income-note">演示询价由你主动生成，不代表真实客户或真实收入。</p>'}`;
+}
+function orderCard(o, provider) {
+  const actions = provider ? (o.status === '待我确认' ? `<button class="primary" data-transition="accept" data-order="${o.id}">接受预约</button><button class="secondary" data-transition="decline" data-order="${o.id}">拒绝预约</button>` : o.status === '已接受，待付款' ? `<button class="secondary" data-transition="paid" data-order="${o.id}">演示客户付款</button>` : o.status === '已预约' ? `<button class="primary" data-transition="complete" data-order="${o.id}">演示完成活动</button>` : '') : (o.status === '待对方确认' ? `<button class="secondary" data-cancel-order="${o.id}">取消预约</button>` : '');
+  return `<article class="order-card"><div class="status">${esc(o.status)} · 模拟订单</div><h3>${provider ? '客户：' : '预约：'}${esc(o.name)}</h3><div class="order-summary"><span>${esc(o.service)}</span><span>${esc(o.area)} · ${esc(o.date)} ${esc(o.time)}</span><span>${o.hours} 小时 · ${money(o.rate)} / 小时</span></div><p class="muted">${esc(o.message)}</p><div class="price-list"><div class="price-line"><strong>订单金额</strong><strong>${money(o.total)}</strong></div>${provider ? `<div class="price-line"><span>平台佣金（${feePercent}% 试算）</span><span>− ${money(o.platformFee)}</span></div><div class="price-line total"><strong>${o.status === '已完成' ? '模拟到手金额' : '预计到手'}</strong><strong>${money(o.providerEarnings)}</strong></div>` : ''}</div><div class="order-actions">${actions}</div></article>`;
+}
+function bindOrders() {
+  document.querySelectorAll('[data-order-tab]').forEach(b => b.onclick = () => { orderTab = b.dataset.orderTab; render(); });
+  document.querySelectorAll('[data-cancel-order]').forEach(b => b.onclick = () => confirmAction('取消这次预约？', '原型没有实际扣款或退款，取消后可以重新申请。', () => { const next = orders.map(o => o.id === b.dataset.cancelOrder && o.status === '待对方确认' ? { ...o, status: '已取消' } : o); if (save('mates.orders', next)) { orders = next; render(); } }));
+  document.querySelectorAll('[data-cancel-activity]').forEach(b => b.onclick = () => confirmAction('取消同行申请？', '取消后可以重新申请。', () => { const next = activityBookings.map(o => o.id === b.dataset.cancelActivity ? { ...o, status: '已取消' } : o); if (save('mates.bookings', next)) { activityBookings = next; render(); } }));
+  document.querySelectorAll('[data-transition]').forEach(b => b.onclick = () => {
+    const map = { accept: ['待我确认', '已接受，待付款'], decline: ['待我确认', '已拒绝'], paid: ['已接受，待付款', '已预约'], complete: ['已预约', '已完成'] };
+    const [from, to] = map[b.dataset.transition];
+    const next = incoming.map(o => o.id === b.dataset.order && o.status === from ? { ...o, status: to } : o);
+    if (!save('mates.incoming', next)) return; incoming = next; render(); toast(to === '已完成' ? '演示完成：收入试算已更新，无实际资金转账' : `演示订单：${to}`);
+  });
+}
+function confirmAction(title, body, action) { showModal(title, `<p class="muted">${body}</p><button class="primary full" id="confirm-action">确认</button>`); $('#confirm-action').onclick = () => { closeModal(); action(); }; }
+function confirmDeleteActivity(id) { confirmAction('删除这个活动？', '删除后将从当前设备的活动列表移除。', () => { const next = ownActivities.filter(a => a.id !== id); if (save('mates.activities', next)) { ownActivities = next; render(); } }); }
+function mePage() {
+  const p = myProfiles[0];
+  const completed = incoming.filter(o => o.status === '已完成');
+  const sum = key => completed.reduce((acc, o) => acc + Math.round(o[key] * 100), 0) / 100;
+  return `<div class="page-heading"><div class="eyebrow">YOUR SPACE, YOUR PACE</div><h1>我的展示面</h1><p class="muted">你是什么样的人，愿意陪别人做什么，由你自己定义。</p></div>${editing || !p ? profileEditor(p) : `<div class="dashboard-banner"><div><h2>${esc(p.name)} <span class="tag">${p.active ? '展示中' : '已暂停'}</span></h2><p>${esc(p.area)} · ${money(p.rate)} / 小时 · ${p.minHours} 小时起约</p><p>${esc(p.bio)}</p></div><div class="order-actions"><button class="primary" id="edit-profile">编辑展示</button><button class="secondary" data-view="${esc(p.id)}">看我的主页</button><button class="text-button" id="toggle-listing">${p.active ? '暂停上架' : '重新上架'}</button></div></div>`}<section class="detail-block"><div class="section-heading"><div><h2>接单与收入试算</h2><p class="muted">仅已完成的演示订单计入，不含支付手续费和税费。</p></div></div><div class="metric-grid"><div class="metric-card"><span>完成订单</span><strong>${completed.length}</strong></div><div class="metric-card"><span>订单金额</span><strong>${money(sum('total'))}</strong></div><div class="metric-card"><span>平台佣金 · ${feePercent}%</span><strong>${money(sum('platformFee'))}</strong></div><div class="metric-card"><span>我的模拟收入</span><strong>${money(sum('providerEarnings'))}</strong></div></div><div class="guideline"><strong>你定价，平台按完成订单抽成。</strong><p>例如 ${money(30)} / 小时 × 2 小时 = ${money(60)}，按 ${feePercent}% 试算，平台佣金 ${money(9)}，接单方到手 ${money(51)}。佣金比例可在商业验证后调整，当前不收取任何费用。</p></div>${p ? `<button class="secondary" id="generate-inquiry" ${!p.active ? 'disabled' : ''}>生成一笔演示询价</button><p class="income-note">用它体验接受预约、模拟付款和完成结算。不会联系真实用户。</p>` : '<p class="income-note">保存个人展示后，可以体验接单流程。</p>'}</section><section class="detail-block"><h2>我的活动</h2>${ownActivities.length ? ownActivities.map(a => `<div class="order-card"><h3>${esc(a.title)}</h3><p class="muted">${esc(a.date)} · ${esc(a.area)}</p><button class="text-button" data-delete-activity="${esc(a.id)}">删除活动</button></div>`).join('') : '<p class="muted">还没有发起搭子活动。</p>'}</section>`;
+}
+function profileEditor(p) {
+  const example = p || { name: '', age: 22, gender: '女生', area: 'CBD', rate: 20, minHours: 1, bio: '', services: [], available: ['周六', '周日'], photos: [], active: true };
+  return `<form class="profile-editor" id="profile-editor"><h2>${p ? '编辑我的个人展示' : '建立你的第一张个人展示'}</h2><p class="muted">头像与照片、个性介绍、服务内容、价格和时间，是别人了解你的开始。</p><label class="field">展示照片（最多 3 张）<input id="photo-upload" type="file" accept="image/jpeg,image/png,image/webp" multiple></label><div class="photo-preview" id="photo-preview">${example.photos.length ? example.photos.map((_, i) => portrait(example, i)).join('') : '<span class="muted">可选：上传你有权使用的照片；未上传时使用示意插画。</span>'}</div><button class="text-button" id="clear-photos" type="button">清空照片</button><div class="row"><label class="field">展示昵称<input name="name" maxlength="24" required value="${esc(example.name)}" placeholder="别人怎么称呼你"></label><label class="field">年龄<input name="age" type="number" min="18" max="80" required value="${example.age}"></label></div><div class="row"><label class="field">性别<select name="gender">${options(['女生', '男生', '其他'], example.gender)}</select></label><label class="field">活动区域<select name="area">${options(areas, example.area)}</select></label></div><label class="field">一句话介绍<input name="tagline" maxlength="60" value="${esc(example.tagline || '')}" placeholder="一起发现城市里的小美好"></label><label class="field">自我介绍<textarea name="bio" minlength="10" maxlength="300" required placeholder="写写你的兴趣、相处方式和可以提供的活动陪伴">${esc(example.bio)}</textarea></label><label class="field">交流语言<input name="languages" maxlength="60" value="${esc(example.languages || '普通话')}" placeholder="普通话 · English"></label><fieldset class="detail-block"><legend>我能提供的陪伴活动（至少选一项）</legend><div class="service-options">${services.map(s => `<label class="service-option"><input type="checkbox" name="services" value="${s}" ${example.services.includes(s) ? 'checked' : ''}>${s}</label>`).join('')}</div></fieldset><div class="row"><label class="field">每小时时薪（澳元）<input name="rate" id="profile-rate" type="number" min="10" max="200" step="0.01" value="${example.rate}" required></label><label class="field">最低预约时长<select name="minHours" id="profile-min-hours">${Array.from({ length: 8 }, (_, i) => i + 1).map(n => `<option value="${n}" ${example.minHours === n ? 'selected' : ''}>${n} 小时</option>`).join('')}</select></label></div><div class="price-list"><div class="price-line"><span>最短预约金额</span><strong id="listing-total"></strong></div><div class="price-line"><span>平台佣金 · ${feePercent}% 试算</span><span id="listing-fee"></span></div><div class="price-line total"><span>预计到手</span><strong id="listing-net"></strong></div></div><fieldset class="detail-block"><legend>可以接单的日子</legend><div class="slot-tags">${weekdays.map(d => `<label class="service-option"><input type="checkbox" name="available" value="${d}" ${example.available.includes(d) ? 'checked' : ''}>${d}</label>`).join('')}</div></fieldset><label class="check"><input type="checkbox" name="active" ${example.active ? 'checked' : ''}><span>保存后上架展示（可随时暂停）</span></label><label class="check"><input type="checkbox" required><span>我已满 18 岁，照片有权使用，提供公共场所的活动陪伴，尊重双方意愿。</span></label><p class="prototype-note">展示只保存在当前设备，尚未发布给真实用户。请勿上传身份证件或填写私人住址。</p><p class="error" id="profile-error" role="alert"></p><button class="primary full" type="submit">${p ? '保存我的展示' : '保存并建立展示'}</button>${p ? '<button class="text-button full" type="button" id="cancel-edit">取消编辑</button>' : ''}</form>`;
+}
+async function preparePhoto(file) {
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error('请选择 JPG、PNG 或 WebP 照片');
+  if (file.size > 10 * 1024 * 1024) throw new Error('单张照片不能超过 10MB');
+  const url = URL.createObjectURL(file);
+  try { const img = new Image(); img.src = url; await img.decode(); const scale = Math.min(1, 900 / Math.max(img.width, img.height)); const canvas = document.createElement('canvas'); canvas.width = Math.round(img.width * scale); canvas.height = Math.round(img.height * scale); canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height); return canvas.toDataURL('image/jpeg', 0.8); } finally { URL.revokeObjectURL(url); }
+}
+function bindMe() {
+  const p = myProfiles[0];
+  $('#edit-profile')?.addEventListener('click', () => { editing = true; render(); });
+  $('#cancel-edit')?.addEventListener('click', () => { editing = false; render(); });
+  $('#toggle-listing')?.addEventListener('click', () => { const next = myProfiles.map(x => x.id === p.id ? { ...x, active: !x.active } : x); if (save('mates.profiles', next)) { myProfiles = next; render(); toast(next[0].active ? '展示已重新上架' : '展示已暂停，不再出现在发现页'); } });
+  document.querySelectorAll('[data-delete-activity]').forEach(b => b.onclick = () => confirmDeleteActivity(b.dataset.deleteActivity));
+  $('#generate-inquiry')?.addEventListener('click', () => {
+    if (!p?.active) return;
+    if (incoming.some(o => !['已完成', '已拒绝', '已取消'].includes(o.status))) { orderTab = 'incoming'; navigate('orders'); toast('先处理已有的演示询价'); return; }
+    const o = { id: makeId(), profileId: p.id, name: 'Alex（演示客户）', area: p.area, service: p.services[0], hours: p.minHours, date: nextAvailableDate(p), time: '14:00', rate: p.rate, message: '想一起喝咖啡，方便的话请确认时间。（演示询价）', status: '待我确认', ...bookingBreakdown(p.rate, p.minHours, p.minHours) };
+    const next = [o, ...incoming]; if (!save('mates.incoming', next)) return; incoming = next; orderTab = 'incoming'; navigate('orders');
+  });
+  const form = $('#profile-editor');
+  if (!form) return;
+  const find = selector => form.querySelector(selector);
+  let photos = [...(p?.photos || [])]; let uploading = false;
+  const paintPhotos = () => { if (!form.isConnected) return; find('#photo-preview').innerHTML = photos.length ? photos.map((_, i) => portrait({ name: '我的', photos }, i)).join('') : '<span class="muted">未上传照片，将使用示意插画。</span>'; };
+  find('#photo-upload').onchange = async e => {
+    if (uploading) return;
+    const input = e.currentTarget;
+    const files = [...input.files]; if (photos.length + files.length > 3) { find('#profile-error').textContent = '最多上传 3 张照片，请先清空后重选'; e.target.value = ''; return; }
+    uploading = true; input.disabled = true; const submit = find('button[type="submit"]'); submit.disabled = true;
+    try { const prepared = []; for (const file of files) prepared.push(await preparePhoto(file)); if (!form.isConnected) return; photos = [...photos, ...prepared]; paintPhotos(); find('#profile-error').textContent = ''; } catch (error) { if (form.isConnected) find('#profile-error').textContent = error.message; }
+    finally { uploading = false; if (form.isConnected) { submit.disabled = false; input.disabled = false; input.value = ''; } }
+  };
+  find('#clear-photos').onclick = () => { if (uploading) return; photos = []; paintPhotos(); };
+  const updateQuote = () => { try { const amounts = bookingBreakdown(Number(find('#profile-rate').value), Number(find('#profile-min-hours').value)); find('#listing-total').textContent = money(amounts.total); find('#listing-fee').textContent = '− ' + money(amounts.platformFee); find('#listing-net').textContent = money(amounts.providerEarnings); } catch { find('#listing-total').textContent = '—'; find('#listing-fee').textContent = '—'; find('#listing-net').textContent = '—'; } };
+  updateQuote(); find('#profile-rate').oninput = updateQuote; find('#profile-min-hours').onchange = updateQuote;
+  form.onsubmit = e => {
+    e.preventDefault(); if (uploading) return; const data = new FormData(e.target);
+    const profile = { ...Object.fromEntries(data), id: p?.id || 'self-' + makeId(), name: String(data.get('name')).trim(), age: Number(data.get('age')), rate: Number(data.get('rate')), minHours: Number(data.get('minHours')), bio: String(data.get('bio')).trim(), services: data.getAll('services'), available: data.getAll('available'), photos, active: data.has('active'), sample: false, style: data.get('gender') === '男生' ? 2 : 1 };
+    const error = validateProfile(profile); if (error) { find('#profile-error').textContent = error; return; }
+    const next = [profile]; if (!save('mates.profiles', next)) return; myProfiles = next; editing = false; render(); toast('个人展示已保存到当前设备');
+  };
+}
+function guidePage() {
+  const entries = [
+    ['如何使用', '发现页挑选个人展示 → 阅读服务内容与价格 → 选择活动、日期和时长 → 提交申请 → 对方确认。找搭子页面保留免费结伴活动，餐饮和场地费用另行约定。'],
+    ['平台怎样盈利', `第一阶段以完成订单抽成作为收入来源，当前按 ${feePercent}% 做商业试算。比如 A$60 的订单，平台佣金 A$9，服务者预计到手 A$51。佣金从服务者订单金额扣除，不向预约者额外加价；支付手续费、税费与真实退款规则尚未接入。免费搭子不收佣金。`],
+    ['你的展示，你的定价', '所有成年人都可以建立自己的展示，无论女生、男生或其他性别。填写照片、介绍、兴趣、服务和可预约日，设定每小时 A$10–200、最低 1–8 小时，并随时暂停展示。上线后需要完成账号、年龄和身份核验。'],
+    ['服务与见面边界', '提供公共场所的活动陪伴，不承诺恋爱关系或性服务。双方都有权拒绝不舒服的要求，见面前确认地点、活动和费用。首次见面建议告知信任的人你的计划。'],
+    ['原型与数据', '人物插画是示例，不代表真实用户或已核验身份。你的照片、展示、收藏和订单只保存在当前浏览器，不跨设备共享。所有支付与收入都是模拟。清除浏览器数据会删除这些内容。'],
+    ['手机版与安装', '这是支持主屏幕安装的网页 App。Android 浏览器可使用安装或添加到主屏幕；iPhone Safari 可点击分享 → 添加到主屏幕。不是 App Store 或 Google Play 安装包，浏览器对安装支持可能不同。'],
+  ];
+  return `<div class="page-heading"><div class="eyebrow">CLEAR RULES, BETTER CONNECTIONS</div><h1>平台指南</h1><p class="muted">价格、流程和边界，见面之前说清楚。</p></div>${entries.map(([h, text]) => `<section class="detail-block guideline"><h2>${h}</h2><p>${text}</p></section>`).join('')}`;
+}
+async function installApp() {
+  if (installPrompt) { await installPrompt.prompt(); await installPrompt.userChoice; installPrompt = undefined; return; }
+  showModal('添加到手机主屏幕', '<p class="muted">iPhone：使用 Safari 打开页面，点击分享，再选“添加到主屏幕”。</p><p class="muted">Android：打开浏览器菜单，选择“安装应用”或“添加到主屏幕”。安装需要受支持的浏览器和 HTTPS 网站。</p><p class="prototype-note">当前是网页 App 原型，尚未发布原生商店版。</p>');
+}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; });
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register(new URL('../sw.js', import.meta.url)).catch(() => { /* Installation support is optional in unsupported browsers. */ }));
+}
 render();

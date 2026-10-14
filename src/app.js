@@ -2,6 +2,7 @@ import { filterActivities, validateActivity } from './logic.js';
 import { bookingBreakdown, filterProfiles, validateProfile, validateReservation, MelbourneDate, PLATFORM_FEE_BPS } from './marketplace.js';
 import { sampleProfiles, sampleActivities, weekdays, services, areas } from './data.js';
 import { esc, money, options, icon, portrait } from './ui.js';
+import { createCommunity } from './community.js';
 
 const $ = selector => document.querySelector(selector);
 const read = key => { try { const value = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(value) ? value : []; } catch { return []; } };
@@ -21,7 +22,7 @@ const feePercent = PLATFORM_FEE_BPS / 100;
 const profileList = () => [...myProfiles, ...sampleProfiles];
 const getProfile = id => profileList().find(p => p.id === id);
 const allActivities = () => [...ownActivities, ...sampleActivities];
-const makeId = () => crypto.randomUUID();
+const makeId = () => globalThis.crypto?.randomUUID?.() || `demo-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 const save = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch { toast('保存失败：浏览器存储空间不足，请减少照片或检查设置'); return false; } };
 const isOwn = p => myProfiles.some(x => x.id === p.id);
 function toast(message) {
@@ -29,33 +30,41 @@ function toast(message) {
   const node = document.createElement('div'); node.className = 'toast'; node.setAttribute('role', 'status'); node.textContent = message;
   document.body.append(node); setTimeout(() => node.remove(), 3500);
 }
-function route() { return decodeURIComponent(location.hash.slice(1) || 'discover'); }
+function route() { try { return decodeURIComponent(location.hash.slice(1) || 'discover'); } catch { return 'discover'; } }
 function navigate(target) { if (route() === target) render(); else location.hash = target; }
-window.addEventListener('hashchange', () => { closeModal(); editing = false; render(); window.scrollTo({ top: 0, behavior: 'instant' }); });
-const navItems = [['discover', 'discover', '发现'], ['activities', 'activity', '找搭子'], ['orders', 'orders', '预约'], ['me', 'me', '我的']];
+let openEditorOnRoute = false;
+function openProfileEditor() { if (route() === 'me') { editing = true; render(); } else { openEditorOnRoute = true; navigate('me'); } }
+window.addEventListener('hashchange', () => { closeModal(); editing = route() === 'me' && openEditorOnRoute; openEditorOnRoute = false; render(); window.scrollTo({ top: 0, behavior: 'instant' }); });
+const community = createCommunity({ navigate, toast, showModal, closeModal, profileList, getProfile, portrait, esc, money, icon, options, renderRoot: render, openActivity: publishActivity });
+const navItems = [['discover', 'discover', '发现'], ['requests', 'requests', '需求'], ['publish', 'plus', '发布'], ['messages', 'messages', '消息'], ['me', 'me', '我的']];
 function nav(active, mobile = false) {
   return `<nav class="${mobile ? 'bottom-nav' : 'desktop-nav'}" aria-label="${mobile ? '手机' : '主'}导航">${navItems.map(([key, glyph, title]) => `<a class="nav-item ${active === key ? 'is-active' : ''}" href="#${key}" ${active === key ? 'aria-current="page"' : ''}><span class="nav-icon">${icon(glyph)}</span><span>${title}</span></a>`).join('')}</nav>`;
 }
 function render() {
   const current = route();
-  const active = current.startsWith('profile/') ? 'discover' : current;
-  let content;
-  if (current.startsWith('profile/')) content = profilePage(current.split('/')[1]);
+  const active = current.startsWith('request/') ? 'requests' : current.startsWith('thread/') ? 'messages' : ['publish', 'requests', 'messages', 'me'].includes(current) ? current : current === 'orders' ? 'me' : 'discover';
+  let content = community.render(current);
+  if (content !== null) { /* Community routes render through the shared mobile shell. */ }
+  else if (current.startsWith('profile/')) content = profilePage(current.split('/')[1]);
   else if (current === 'activities') content = activitiesPage();
   else if (current === 'orders') content = ordersPage();
   else if (current === 'me') content = mePage();
   else if (current === 'guide') content = guidePage();
-  else content = discoverPage();
-  $('#app').innerHTML = `<header class="app-header"><a href="#discover" class="brand"><span class="brand-mark">↗</span>碰个面<span class="header-location">${icon('pin')} 墨尔本</span></a>${nav(active)}<div class="header-actions"><button class="secondary" data-action="listing">${icon('plus')} 我想接单</button><a class="icon-button" href="#guide" aria-label="平台指南">?</a></div></header><main class="app-main">${content}<footer class="app-footer"><span>碰个面 · 在墨尔本，和喜欢的生活碰面。</span><a href="#guide">规则与费用说明</a><span>成人活动陪伴 · 资料与订单为原型演示</span></footer></main>${nav(active, true)}`;
+  else if (current === 'verification') content = verificationPage();
+  else if (current === 'companions') content = discoverPage();
+  else content = '<div class="empty">找不到这个页面。<a href="#discover">返回发现</a></div>';
+  $('#app').innerHTML = `<header class="app-header"><a href="#discover" class="brand"><span class="brand-mark">↗</span>碰个面<span class="header-location">${icon('pin')} 墨尔本</span></a>${nav(active)}<div class="header-actions"><a class="secondary" href="#publish">${icon('plus')} 发布</a><a class="icon-button" href="#guide" aria-label="平台指南">?</a></div></header><main class="app-main">${content}<footer class="app-footer"><span>碰个面 · 让需求找到合适的人。</span><a href="#guide">规则与费用说明</a><span>墨尔本华人社区 · 本机交互演示</span></footer></main>${nav(active, true)}`;
   bindCommon();
-  if (active === 'discover' && !current.startsWith('profile/')) bindDiscovery();
+  community.bind(current);
+  if (current === 'companions') bindDiscovery();
   if (current.startsWith('profile/')) bindProfile(getProfile(current.split('/')[1]));
   if (current === 'activities') bindActivities();
   if (current === 'orders') bindOrders();
-  if (current === 'me') bindMe();
+  if (current === 'verification') bindVerification();
+  if (current === 'me') { bindMe(); community.bindMyServices?.(); }
 }
 function bindCommon() {
-  document.querySelectorAll('[data-action="listing"]').forEach(button => button.onclick = () => { editing = true; if (route() !== 'me') { location.hash = 'me'; setTimeout(() => { editing = true; render(); }, 0); } else render(); });
+  document.querySelectorAll('[data-action="listing"]').forEach(button => button.onclick = openProfileEditor);
   document.querySelectorAll('[data-favorite]').forEach(button => button.onclick = () => {
     const id = button.dataset.favorite;
     const next = favorites.includes(id) ? favorites.filter(x => x !== id) : [...favorites, id];
@@ -87,11 +96,11 @@ function profilePage(id) {
   const p = getProfile(id);
   if (!p) return '<div class="empty">这个展示暂时不存在。<a href="#discover">返回发现</a></div>';
   const photos = Math.max(1, p.photos?.length || 0);
-  return `<a href="#discover" class="back-button">${icon('back')} 返回发现</a><div class="detail-layout"><div class="detail-gallery"><div class="profile-cover">${portrait(p)}<span class="sample-label">${p.sample ? '示例人物 · 插画展示' : '我的展示 · 仅当前设备'}</span></div>${photos > 1 ? `<div class="photo-preview">${p.photos.slice(1).map((_, index) => portrait(p, index + 1)).join('')}</div>` : ''}</div><section class="detail-panel"><div class="eyebrow">LET’S SPEND A LITTLE TIME TOGETHER</div><div class="detail-title"><h1>${esc(p.name)}<small>${p.age} · ${esc(p.gender)}</small></h1><button class="favorite ${favorites.includes(p.id) ? 'selected' : ''}" data-favorite="${esc(p.id)}" aria-label="收藏${esc(p.name)}" aria-pressed="${favorites.includes(p.id)}">${icon('heart')}</button></div><div class="detail-stats"><span>${icon('pin')} ${esc(p.area)} · 墨尔本</span><span>${esc(p.languages || '普通话')}</span></div><p class="profile-bio">${esc(p.tagline || '期待与你，一起度过好时光。')}</p><div class="detail-block"><h3>认识一下我</h3><p>${esc(p.bio)}</p></div><div class="detail-block"><h3>可以陪你做什么</h3><div class="interest-tags">${p.services.map(s => `<span class="tag">${esc(s)}</span>`).join('')}</div></div><div class="detail-block"><h3>我的可预约日</h3><div class="slot-tags">${p.available.map(d => `<span class="tag">${esc(d)}</span>`).join('')}</div><p class="muted">具体时间以双方确认结果为准，页面不是实时空闲状态。</p></div><div class="guideline"><strong>提前说清楚，见面更自在。</strong><p>活动在公共场所进行。餐饮、门票和交通各自支付或提前约定；陪伴服务不承诺恋爱关系。</p></div><div class="booking-bar"><div class="hourly-price">${money(p.rate)}<small>/ 小时 · ${p.minHours} 小时起</small></div><button class="primary" id="book-profile" ${!isOwn(p) && !p.active ? 'disabled' : ''}>${isOwn(p) ? '编辑我的展示' : p.active ? '预约陪伴' : '暂未上架'} ${icon('arrow')}</button></div>${isOwn(p) ? '' : '<p class="prototype-note">仅模拟申请，不联系真实人物、不扣款。</p>'}</section></div>`;
+  return `<a href="#companions" class="back-button">${icon('back')} 返回陪伴</a><div class="detail-layout"><div class="detail-gallery"><div class="profile-cover">${portrait(p)}<span class="sample-label">${p.sample ? '示例人物 · 插画展示' : '我的展示 · 仅当前设备'}</span></div>${photos > 1 ? `<div class="photo-preview">${p.photos.slice(1).map((_, index) => portrait(p, index + 1)).join('')}</div>` : ''}</div><section class="detail-panel"><div class="eyebrow">LET’S SPEND A LITTLE TIME TOGETHER</div><div class="detail-title"><h1>${esc(p.name)}<small>${p.age} · ${esc(p.gender)}</small></h1><button class="favorite ${favorites.includes(p.id) ? 'selected' : ''}" data-favorite="${esc(p.id)}" aria-label="收藏${esc(p.name)}" aria-pressed="${favorites.includes(p.id)}">${icon('heart')}</button></div><div class="detail-stats"><span>${icon('pin')} ${esc(p.area)} · 墨尔本</span><span>${esc(p.languages || '普通话')}</span></div><p class="profile-bio">${esc(p.tagline || '期待与你，一起度过好时光。')}</p><div class="detail-block"><h3>认识一下我</h3><p>${esc(p.bio)}</p></div><div class="detail-block"><h3>可以陪你做什么</h3><div class="interest-tags">${p.services.map(s => `<span class="tag">${esc(s)}</span>`).join('')}</div></div><div class="detail-block"><h3>我的可预约日</h3><div class="slot-tags">${p.available.map(d => `<span class="tag">${esc(d)}</span>`).join('')}</div><p class="muted">具体时间以双方确认结果为准，页面不是实时空闲状态。</p></div><div class="guideline"><strong>提前说清楚，见面更自在。</strong><p>活动在公共场所进行。餐饮、门票和交通各自支付或提前约定；陪伴服务不承诺恋爱关系。</p></div><div class="booking-bar"><div class="hourly-price">${money(p.rate)}<small>/ 小时 · ${p.minHours} 小时起</small></div><button class="primary" id="book-profile" ${!isOwn(p) && !p.active ? 'disabled' : ''}>${isOwn(p) ? '编辑我的展示' : p.active ? '预约陪伴' : '暂未上架'} ${icon('arrow')}</button></div>${isOwn(p) ? '' : '<p class="prototype-note">仅模拟申请，不联系真实人物、不扣款。</p>'}</section></div>`;
 }
 function bindProfile(p) {
   if (!p) return;
-  $('#book-profile').onclick = () => { if (isOwn(p)) { editing = true; navigate('me'); setTimeout(() => { editing = true; render(); }, 0); } else bookProfile(p); };
+  $('#book-profile').onclick = () => { if (isOwn(p)) { openProfileEditor(); } else bookProfile(p); };
 }
 let modalFocus;
 function showModal(title, body) {
@@ -173,8 +182,9 @@ function confirmDeleteActivity(id) { confirmAction('删除这个活动？', '删
 function mePage() {
   const p = myProfiles[0];
   const completed = incoming.filter(o => o.status === '已完成');
-  const sum = key => completed.reduce((acc, o) => acc + Math.round(o[key] * 100), 0) / 100;
-  return `<div class="page-heading"><div class="eyebrow">YOUR SPACE, YOUR PACE</div><h1>我的展示面</h1><p class="muted">你是什么样的人，愿意陪别人做什么，由你自己定义。</p></div>${editing || !p ? profileEditor(p) : `<div class="dashboard-banner"><div><h2>${esc(p.name)} <span class="tag">${p.active ? '展示中' : '已暂停'}</span></h2><p>${esc(p.area)} · ${money(p.rate)} / 小时 · ${p.minHours} 小时起约</p><p>${esc(p.bio)}</p></div><div class="order-actions"><button class="primary" id="edit-profile">编辑展示</button><button class="secondary" data-view="${esc(p.id)}">看我的主页</button><button class="text-button" id="toggle-listing">${p.active ? '暂停上架' : '重新上架'}</button></div></div>`}<section class="detail-block"><div class="section-heading"><div><h2>接单与收入试算</h2><p class="muted">仅已完成的演示订单计入，不含支付手续费和税费。</p></div></div><div class="metric-grid"><div class="metric-card"><span>完成订单</span><strong>${completed.length}</strong></div><div class="metric-card"><span>订单金额</span><strong>${money(sum('total'))}</strong></div><div class="metric-card"><span>平台佣金 · ${feePercent}%</span><strong>${money(sum('platformFee'))}</strong></div><div class="metric-card"><span>我的模拟收入</span><strong>${money(sum('providerEarnings'))}</strong></div></div><div class="guideline"><strong>你定价，平台按完成订单抽成。</strong><p>例如 ${money(30)} / 小时 × 2 小时 = ${money(60)}，按 ${feePercent}% 试算，平台佣金 ${money(9)}，接单方到手 ${money(51)}。佣金比例可在商业验证后调整，当前不收取任何费用。</p></div>${p ? `<button class="secondary" id="generate-inquiry" ${!p.active ? 'disabled' : ''}>生成一笔演示询价</button><p class="income-note">用它体验接受预约、模拟付款和完成结算。不会联系真实用户。</p>` : '<p class="income-note">保存个人展示后，可以体验接单流程。</p>'}</section><section class="detail-block"><h2>我的活动</h2>${ownActivities.length ? ownActivities.map(a => `<div class="order-card"><h3>${esc(a.title)}</h3><p class="muted">${esc(a.date)} · ${esc(a.area)}</p><button class="text-button" data-delete-activity="${esc(a.id)}">删除活动</button></div>`).join('') : '<p class="muted">还没有发起搭子活动。</p>'}</section>`;
+  const communityIncome = community.getIncomeSummary?.() || { completedCount: 0, total: 0, platformFee: 0, providerEarnings: 0 };
+  const sum = key => completed.reduce((acc, o) => acc + Math.round(o[key] * 100), 0) / 100 + (communityIncome[key] || 0);
+  return `<div class="page-heading"><div class="eyebrow">YOUR SPACE, YOUR PACE</div><h1>我的展示面</h1><p class="muted">你是什么样的人，愿意陪别人做什么，由你自己定义。</p></div><div class="c-actions"><a class="secondary" href="#messages">${icon('messages')} 消息与订单</a><a class="secondary" href="#orders">${icon('orders')} 活动与陪伴预约</a><a class="secondary" href="#verification">核验中心</a></div>${editing ? profileEditor(p) : p ? `<div class="dashboard-banner"><div><h2>${esc(p.name)} <span class="tag">${p.active ? '展示中' : '已暂停'}</span></h2><p>${esc(p.area)} · ${money(p.rate)} / 小时 · ${p.minHours} 小时起约</p><p>${esc(p.bio)}</p></div><div class="order-actions"><button class="primary" id="edit-profile">编辑展示</button><button class="secondary" data-view="${esc(p.id)}">看我的主页</button><button class="text-button" id="toggle-listing">${p.active ? '暂停上架' : '重新上架'}</button></div></div>` : `<div class="dashboard-banner"><div><h2>给自己一个展示面</h2><p>先写写你是谁，再挂出自己的服务与价格。</p></div><button class="primary" data-action="listing">建立个人展示</button></div>`}${community.renderMyServices?.() || ''}<section class="detail-block"><div class="section-heading"><div><h2>接单与收入试算</h2><p class="muted">仅已完成的演示订单计入，不含支付手续费和税费。</p></div></div><div class="metric-grid"><div class="metric-card"><span>完成订单</span><strong>${completed.length + communityIncome.completedCount}</strong></div><div class="metric-card"><span>订单金额</span><strong>${money(sum('total'))}</strong></div><div class="metric-card"><span>平台佣金 · ${feePercent}%</span><strong>${money(sum('platformFee'))}</strong></div><div class="metric-card"><span>我的模拟收入</span><strong>${money(sum('providerEarnings'))}</strong></div></div><div class="guideline"><strong>你定价，平台按完成订单抽成。</strong><p>例如 ${money(30)} / 小时 × 2 小时 = ${money(60)}，按 ${feePercent}% 试算，平台佣金 ${money(9)}，接单方到手 ${money(51)}。佣金比例可在商业验证后调整，当前不收取任何费用。</p></div>${p ? `<button class="secondary" id="generate-inquiry" ${!p.active ? 'disabled' : ''}>生成一笔演示询价</button><p class="income-note">用它体验接受预约、模拟付款和完成结算。不会联系真实用户。</p>` : '<p class="income-note">保存个人展示后，可以体验接单流程。</p>'}</section><section class="detail-block"><h2>我的活动</h2>${ownActivities.length ? ownActivities.map(a => `<div class="order-card"><h3>${esc(a.title)}</h3><p class="muted">${esc(a.date)} · ${esc(a.area)}</p><button class="text-button" data-delete-activity="${esc(a.id)}">删除活动</button></div>`).join('') : '<p class="muted">还没有发起搭子活动。</p>'}</section>`;
 }
 function profileEditor(p) {
   const example = p || { name: '', age: 22, gender: '女生', area: 'CBD', rate: 20, minHours: 1, bio: '', services: [], available: ['周六', '周日'], photos: [], active: true };
@@ -221,9 +231,16 @@ function bindMe() {
     const next = [profile]; if (!save('mates.profiles', next)) return; myProfiles = next; editing = false; render(); toast('个人展示已保存到当前设备');
   };
 }
+function verificationPage() {
+  return `<div class="page-heading"><div class="eyebrow">TRUST STARTS WITH CLARITY</div><h1>核验中心</h1><p class="muted">知道核验过什么，才能安心选择。</p></div><div class="prototype-note">认证功能将在后续迭代接入。当前资料均未完成实际核验，请勿上传证件或人脸材料。</div><div class="c-feed-grid">${[['photo', '真人照片核验', '检查展示照片是否与本人匹配。'], ['identity', '身份与成年核验', '检查身份与平台的成年人要求。'], ['career', '职业经历核验', '检查某段工作或专业经历，并注明核验范围。']].map(([key, title, description]) => `<article class="order-card"><span class="tag">尚未接入</span><h3>${title}</h3><p>${description}</p><button class="secondary" data-verification="${key}">了解核验流程</button></article>`).join('')}</div>`;
+}
+function bindVerification() {
+  const descriptions = { photo: '未来通过受支持的真人照片匹配流程检查照片与本人一致。现在不采集照片核验材料，也不会显示虚假的认证结果。', identity: '未来使用第三方核验流程，由后端确认身份与成年状态。证件不放在公开资料、聊天或当前浏览器。', career: '未来区分本人填写、待审核和某段经历已核验，并显示核验日期。职业经历标识不表示企业背书。' };
+  document.querySelectorAll('[data-verification]').forEach(button => button.onclick = () => showModal('核验流程说明', `<p>${descriptions[button.dataset.verification]}</p><p class="prototype-note">原型仅展示规划，未接入核验服务。</p>`));
+}
 function guidePage() {
   const entries = [
-    ['如何使用', '发现页挑选个人展示 → 阅读服务内容与价格 → 选择活动、日期和时长 → 提交申请 → 对方确认。找搭子页面保留免费结伴活动，餐饮和场地费用另行约定。'],
+    ['如何使用', '发现页有职业交流、活动陪伴、有偿求助和兴趣搭子。职业服务支持 30／60 分钟套餐；需求可以申请帮助或选择申请者。消息页承接模拟订单与对话。免费活动的开销另行约定。'],
     ['平台怎样盈利', `第一阶段以完成订单抽成作为收入来源，当前按 ${feePercent}% 做商业试算。比如 A$60 的订单，平台佣金 A$9，服务者预计到手 A$51。佣金从服务者订单金额扣除，不向预约者额外加价；支付手续费、税费与真实退款规则尚未接入。免费搭子不收佣金。`],
     ['你的展示，你的定价', '所有成年人都可以建立自己的展示，无论女生、男生或其他性别。填写照片、介绍、兴趣、服务和可预约日，设定每小时 A$10–200、最低 1–8 小时，并随时暂停展示。上线后需要完成账号、年龄和身份核验。'],
     ['服务与见面边界', '提供公共场所的活动陪伴，不承诺恋爱关系或性服务。双方都有权拒绝不舒服的要求，见面前确认地点、活动和费用。首次见面建议告知信任的人你的计划。'],
@@ -237,7 +254,7 @@ async function installApp() {
   showModal('添加到手机主屏幕', '<p class="muted">iPhone：使用 Safari 打开页面，点击分享，再选“添加到主屏幕”。</p><p class="muted">Android：打开浏览器菜单，选择“安装应用”或“添加到主屏幕”。安装需要受支持的浏览器和 HTTPS 网站。</p><p class="prototype-note">当前是网页 App 原型，尚未发布原生商店版。</p>');
 }
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; });
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && ['http:', 'https:'].includes(location.protocol)) {
   window.addEventListener('load', () => navigator.serviceWorker.register(new URL('../sw.js', import.meta.url)).catch(() => { /* Installation support is optional in unsupported browsers. */ }));
 }
 render();

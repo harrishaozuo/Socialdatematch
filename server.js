@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 const root = fileURLToPath(new URL('.', import.meta.url));
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
-const publicFiles = new Set(['/index.html', '/src/app.js', '/src/style.css', '/src/logic.js', '/src/marketplace.js', '/src/data.js', '/src/ui.js', '/manifest.webmanifest', '/sw.js', '/icon.svg', '/icon-192.png', '/icon-512.png']);
+const publicFiles = new Set(['/index.html', '/src/app.js', '/src/style.css', '/src/logic.js', '/src/marketplace.js', '/src/data.js', '/src/ui.js', '/src/community.js', '/src/community-logic.js', '/src/community-data.js', '/src/community.css', '/manifest.webmanifest', '/sw.js', '/icon.svg', '/icon-192.png', '/icon-512.png', '/demo.html']);
 http.createServer(async (req, res) => {
   try {
     const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);

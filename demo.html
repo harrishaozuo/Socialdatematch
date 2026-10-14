@@ -1,0 +1,1473 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#173c32"><title>碰个面 · 可交互手机原型</title><style>:root {
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  color: #173c32;
+  background: #f8f6f1;
+  font-synthesis: none;
+  --ink: #173c32;
+  --muted: #7b847b;
+  --lime: #dbea9a;
+  --line: #e5e7dd;
+  --paper: #fffefa;
+  --orange: #e99b73;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; -webkit-font-smoothing: antialiased; }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; color: inherit; border: 0; }
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+button:disabled { cursor: not-allowed; opacity: .48; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid #9eb86b; outline-offset: 4px; }
+a { color: inherit; text-underline-offset: 4px; }
+h1, h2, h3, p { margin-top: 0; }
+h1, h2, h3 { font-weight: 750; }
+p { line-height: 1.75; }
+svg { display: block; }
+.app-header { height: 84px; border-bottom: 1px solid var(--line); background: #f8f6f1ee; display: flex; align-items: center; gap: 26px; padding: 0 max(32px, calc((100vw - 1200px) / 2)); }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-size: 23px; font-weight: 800; white-space: nowrap; letter-spacing: -.8px; text-decoration: none; }
+.brand-mark { width: 35px; height: 35px; background: var(--ink); color: var(--lime); display: grid; place-items: center; border-radius: 12px; font-size: 24px; transform: rotate(-7deg); }
+.brand-mark svg { width: 24px; height: 24px; }
+.header-location { font-size: 12px; color: #58675b; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.header-location svg { width: 14px; height: 14px; }
+.header-actions { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.icon-button { width: 39px; height: 39px; border-radius: 50%; background: transparent; display: grid; place-items: center; }
+.icon-button:hover { background: #eaece2; }
+.icon-button svg { width: 20px; height: 20px; }
+.desktop-nav { display: flex; align-items: center; gap: 30px; margin-left: auto; }
+.nav-item { background: transparent; color: #7a8278; padding: 14px 0; font-size: 13px; position: relative; text-decoration: none; }
+.desktop-nav .nav-item { display: flex; align-items: center; gap: 8px; }
+.desktop-nav .nav-item svg { width: 16px; height: 16px; }
+.nav-item.is-active { color: var(--ink); font-weight: 700; }
+.desktop-nav .nav-item.is-active::after { content: ""; position: absolute; bottom: 5px; left: 50%; width: 15px; height: 3px; border-radius: 3px; background: var(--ink); transform: translateX(-50%); }
+.bottom-nav { display: none; }
+.app-main { max-width: 1264px; margin: 0 auto; padding: 0 32px 36px; min-height: calc(100vh - 162px); }
+.page-heading { margin: 40px 0 28px; }
+.page-heading h1 { font-size: 34px; margin-bottom: 8px; letter-spacing: -1px; }
+.page-heading p { color: var(--muted); font-size: 14px; }
+.eyebrow { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #66775d; letter-spacing: 1.8px; font-weight: 650; }
+.muted { color: var(--muted); font-size: 13px; line-height: 1.7; }
+.hero { display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; gap: 60px; padding: 48px 0 35px; }
+.hero-copy h1 { font-size: clamp(37px, 4vw, 53px); line-height: 1.3; letter-spacing: -2px; margin: 16px 0 17px; }
+.hero-copy h1 em, .hero-copy h1 span { font-style: normal; background: linear-gradient(transparent 65%, var(--lime) 65%); }
+.hero-copy > p { max-width: 460px; color: #758071; font-size: 14px; line-height: 1.9; margin-bottom: 22px; }
+.hero-copy > .primary { margin-right: 10px; }
+.hero-pill { display: inline-flex; align-items: center; gap: 7px; background: #ebefdf; color: #596f49; padding: 6px 10px; border-radius: 20px; font-size: 10px; letter-spacing: .8px; }
+.hero-pill::before { content: ""; width: 5px; height: 5px; background: #72964f; border-radius: 50%; }
+.hero-stats { display: flex; gap: 20px; margin: 0 0 20px; font-size: 11px; color: #77806f; }
+.hero-stats b, .hero-stats strong { display: block; margin-bottom: 4px; font-size: 18px; color: var(--ink); }
+.hero-visual { position: relative; height: 325px; isolation: isolate; }
+.hero-visual::before { content: ""; position: absolute; width: 270px; height: 270px; border-radius: 50%; background: #e9eddb; left: 22%; top: 18px; z-index: -1; }
+.hero-visual::after { content: "✳"; position: absolute; right: 12px; top: 6px; font-size: 70px; color: var(--orange); transform: rotate(20deg); }
+.hero-portrait { width: 195px; height: 245px; position: absolute; left: 25px; top: 15px; border: 7px solid var(--paper); background: #e6d9cf; border-radius: 23px; overflow: hidden; transform: rotate(-8deg); box-shadow: 0 16px 25px #273a2610; }
+.hero-portrait:nth-child(2) { left: auto; right: 30px; top: 63px; transform: rotate(9deg); background: #d7dfc9; z-index: 1; }
+.hero-portrait .portrait-art { width: 100%; height: 100%; }
+.hero-caption { position: absolute; bottom: 2px; left: 45px; z-index: 3; padding: 12px 15px; border-radius: 13px; background: var(--paper); box-shadow: 0 8px 24px #243b2310; font-size: 11px; transform: rotate(-3deg); }
+.hero-caption b { display: block; font-size: 13px; margin-bottom: 3px; }
+.hero-portrait .hero-caption { left: 0; right: 0; bottom: 0; padding: 8px 10px; border-radius: 0; box-shadow: none; font-size: 10px; transform: none; }
+.hero-portrait .hero-caption span { float: right; font-size: 8px; color: #7b847b; }
+.hero-visual > .hero-pill { position: absolute; top: 22px; right: 35px; z-index: -1; }
+.primary, .secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 12px 19px; border-radius: 11px; font-size: 13px; font-weight: 650; text-decoration: none; }
+.primary { background: var(--ink); color: #fffefa; }
+.primary:hover { background: #275648; }
+.primary svg, .secondary svg { width: 17px; height: 17px; }
+.secondary { background: transparent; border: 1px solid #d6dacd; }
+.secondary:hover { background: #eef0e6; }
+.text-button { padding: 5px 0; background: transparent; font-size: 12px; color: #657757; }
+.text-button:hover { text-decoration: underline; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 27px 0 21px; }
+.section-heading h2 { font-size: 23px; letter-spacing: -.6px; margin-bottom: 6px; }
+.section-heading p { font-size: 12px; color: var(--muted); margin: 0; }
+.filter-strip, .segmented { display: flex; flex-wrap: wrap; gap: 8px; }
+.filter-chip { background: transparent; padding: 9px 14px; border: 1px solid #e0e3d7; border-radius: 25px; font-size: 12px; color: #6c7965; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+.filter-chip svg { width: 13px; height: 13px; }
+.filter-chip:hover { border-color: #b3c492; }
+.filter-chip.selected { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.filter-controls { display: flex; justify-content: space-between; gap: 14px; align-items: center; margin: 16px 0 21px; }
+.filter-controls > div { display: flex; gap: 9px; }
+.filter-controls select { font-size: 12px; min-height: 39px; padding: 9px 30px 9px 12px; }
+.search-box { position: relative; flex: 1; max-width: 340px; }
+.app-main section > .search-box { max-width: none; margin-bottom: 14px; }
+.search-box input { width: 100%; background: #eeefe7; border-color: transparent; font-size: 12px; padding: 11px 14px 11px 37px; }
+.search-box svg { position: absolute; left: 13px; top: 12px; width: 16px; height: 16px; color: #7e8b75; pointer-events: none; }
+.profile-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.profile-card { border: 1px solid var(--line); background: var(--paper); border-radius: 17px; overflow: hidden; transition: transform .18s ease, box-shadow .18s ease; }
+.profile-card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px #173c3209; }
+.profile-cover { height: 242px; position: relative; overflow: hidden; background: var(--color, #e6e6d8); }
+.profile-link { display: block; height: 100%; }
+.portrait-art { width: 100%; height: 100%; }
+img.portrait-art { object-fit: cover; }
+.profile-overlay { position: absolute; inset: auto 12px 12px; display: flex; align-items: center; justify-content: space-between; gap: 6px; pointer-events: none; }
+.profile-overlay > span { font-size: 10px; padding: 5px 8px; border-radius: 6px; color: var(--ink); background: #fffefadf; backdrop-filter: blur(5px); }
+.profile-body { padding: 16px; }
+.profile-name { display: flex; align-items: center; gap: 6px; font-size: 17px; margin: 0 0 6px; letter-spacing: -.3px; }
+.profile-name h3 { margin: 0; font-size: inherit; }
+.profile-name a { text-decoration: none; }
+.profile-name span { font-size: 11px; color: #829277; font-weight: 500; }
+.profile-meta { color: #88917e; font-size: 10px; margin: 0 0 11px; line-height: 1.6; display: flex; align-items: center; gap: 4px; }
+.profile-meta svg { width: 11px; height: 11px; }
+.interest-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.tag { background: #f0f2e8; color: #6d7c59; border-radius: 5px; padding: 4px 6px; font-size: 10px; white-space: nowrap; }
+.profile-bio { margin: 11px 0 13px; font-size: 11px; color: #7c8477; line-height: 1.7; min-height: 38px; }
+.profile-footer { display: flex; justify-content: space-between; gap: 8px; align-items: center; border-top: 1px solid #eeefe7; padding-top: 12px; }
+.hourly-price { color: var(--ink); font-size: 19px; font-weight: 750; white-space: nowrap; letter-spacing: -.5px; }
+.hourly-price small { color: #929987; font-size: 10px; font-weight: 400; letter-spacing: 0; }
+.profile-footer .primary { min-height: 33px; padding: 7px 12px; border-radius: 8px; font-size: 11px; }
+.favorite { position: absolute; right: 11px; top: 11px; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: #fffefa9e; backdrop-filter: blur(8px); font-size: 17px; color: #5c6657; }
+.favorite svg { width: 16px; height: 16px; }
+.favorite.is-active, .favorite.selected { color: #c86952; background: #fff3eb; }
+.favorite.selected svg { fill: #c8695230; }
+.sample-label { font-size: 9px; position: absolute; left: 11px; top: 12px; background: #fffefa99; color: #6d7665; padding: 4px 6px; border-radius: 4px; pointer-events: none; }
+.back-button { background: transparent; padding: 18px 0; color: #7b8870; display: flex; gap: 7px; align-items: center; font-size: 12px; text-decoration: none; }
+.back-button svg { width: 15px; height: 15px; }
+.detail-layout { display: grid; grid-template-columns: .9fr 1.15fr; gap: 42px; align-items: start; margin: 12px 0 30px; }
+.detail-gallery { border-radius: 24px; position: relative; overflow: hidden; background: var(--color, #e3e8d8); }
+.detail-gallery > .profile-cover { height: 500px; }
+.detail-gallery .photo-preview { padding: 12px; margin: 0; }
+.detail-gallery .sample-label { left: 18px; top: 18px; }
+.detail-panel { padding-top: 8px; }
+.detail-title { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 8px; position: relative; }
+.detail-title h1 { font-size: 35px; letter-spacing: -1px; margin: 0; }
+.detail-title h1 small { display: inline-block; font-size: 13px; font-weight: 500; margin-left: 12px; letter-spacing: 0; color: #839078; }
+.detail-title .favorite { position: static; flex-shrink: 0; background: #ecefe3; }
+.detail-title .hourly-price { font-size: 28px; }
+.detail-stats { display: flex; gap: 22px; padding: 20px 0; margin-top: 10px; border-bottom: 1px solid var(--line); font-size: 12px; color: #7d8975; }
+.detail-stats b { color: var(--ink); margin-right: 4px; }
+.detail-stats span { display: flex; align-items: center; gap: 6px; }
+.detail-stats svg { width: 15px; height: 15px; flex-shrink: 0; }
+.detail-block { padding: 21px 0 0; }
+.detail-block h3 { font-size: 14px; margin-bottom: 12px; }
+.detail-block p { color: #7b8575; font-size: 13px; margin-bottom: 10px; }
+.service-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.service-option { padding: 13px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); font-size: 12px; text-align: left; }
+.service-option.selected { background: #edf2de; border-color: #a3b980; }
+.service-options label { display: flex; align-items: center; gap: 7px; margin: 0; }
+.service-options input, .slot-tags input { width: 14px; height: 14px; margin: 0; }
+.slot-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+.slot-tags span, .slot-tags button, .slot-tags label { background: #eeefe5; padding: 8px 11px; border-radius: 7px; font-size: 11px; color: #6e7d61; margin: 0; }
+.slot-tags label { display: flex; align-items: center; gap: 6px; }
+.booking-bar { background: #e9eddf; padding: 16px; margin-top: 25px; border-radius: 13px; display: flex; justify-content: space-between; align-items: center; gap: 15px; }
+.booking-bar p { margin: 5px 0 0; font-size: 10px; color: #7b8970; }
+.price-list { padding: 14px 0; }
+.price-line { display: flex; justify-content: space-between; gap: 15px; font-size: 13px; color: #79866c; margin: 12px 0; }
+.total { display: flex; justify-content: space-between; gap: 15px; background: #eef2e2; padding: 15px; border-radius: 10px; margin: 16px 0; font-weight: 700; font-size: 15px; }
+.dialog-backdrop { position: fixed; inset: 0; background: #112c2490; backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 22px; z-index: 100; }
+.dialog { width: min(540px, 100%); max-height: calc(100dvh - 44px); overflow: auto; overscroll-behavior: contain; background: var(--paper); padding: 29px; border-radius: 23px; box-shadow: 0 30px 90px #08211740; }
+.dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+.dialog-head h2, .dialog-head h3 { margin: 0; font-size: 22px; letter-spacing: -.5px; }
+.dialog p { font-size: 12px; color: #7c8773; }
+.close { border-radius: 50%; background: #f0f1e8; width: 33px; height: 33px; flex-shrink: 0; display: grid; place-items: center; font-size: 22px; font-weight: 400; }
+.row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+label, .field { display: block; font-size: 12px; color: #526548; margin: 16px 0 7px; }
+input, select, textarea { border: 1px solid #dce0d1; background: #fffefa; color: var(--ink); border-radius: 9px; padding: 11px 12px; min-height: 43px; min-width: 0; }
+input::placeholder, textarea::placeholder { color: #a0a697; }
+label > input, label > select, label > textarea, .field > input, .field > select, .field > textarea { display: block; width: 100%; margin-top: 8px; }
+textarea { min-height: 90px; resize: vertical; line-height: 1.65; }
+fieldset { border: 0; padding: 0; margin: 18px 0 0; min-width: 0; }
+fieldset.detail-block { padding: 0; }
+legend { font-size: 13px; color: #526548; padding: 0; margin-bottom: 12px; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--ink); min-height: 0; flex-shrink: 0; }
+.check, .switch-label { display: flex; gap: 10px; align-items: flex-start; line-height: 1.7; font-size: 11px; }
+.check input, .switch-label input { width: 16px; height: 16px; margin: 3px 0 0; }
+.full { width: 100%; margin-top: 12px; }
+.error { color: #b75f46; font-size: 12px; line-height: 1.6; }
+.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); max-width: calc(100vw - 30px); width: max-content; padding: 13px 20px; border-radius: 12px; background: var(--ink); color: white; box-shadow: 0 8px 30px #173c3220; z-index: 110; font-size: 13px; line-height: 1.6; }
+.empty { padding: 65px 20px; text-align: center; color: #85917a; grid-column: 1 / -1; background: #f0f2e8; border-radius: 16px; }
+.empty h3 { color: var(--ink); }
+.empty p { font-size: 13px; }
+.activity-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.activity-card { padding: 24px; background: var(--paper); border: 1px solid var(--line); border-radius: 17px; }
+.activity-emoji { display: grid; place-items: center; width: 54px; height: 54px; font-size: 27px; background: #edf0df; border-radius: 15px; margin-bottom: 18px; }
+.activity-card h3 { font-size: 17px; margin-bottom: 10px; }
+.activity-card p { color: #7a8770; font-size: 12px; }
+.activity-meta { color: #88937c; font-size: 11px; margin: 14px 0; line-height: 1.9; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.activity-meta svg { width: 13px; height: 13px; }
+.activity-card .profile-footer { margin-top: 20px; }
+.order-card { padding: 22px; margin: 15px 0; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; }
+.order-card h3 { font-size: 17px; margin: 0 0 8px; }
+.order-card p { font-size: 12px; color: #829077; margin-bottom: 8px; }
+.order-summary { display: flex; gap: 20px; justify-content: space-between; align-items: flex-start; }
+.order-summary > svg { width: 65px; height: 75px; border-radius: 12px; flex-shrink: 0; }
+.order-summary > div:first-of-type { flex: 1; }
+.status { display: inline-flex; font-size: 10px; color: #627f47; background: #ecf1df; padding: 6px 9px; border-radius: 6px; white-space: nowrap; }
+.order-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--line); }
+.order-actions button { min-height: 35px; padding: 8px 13px; font-size: 11px; }
+.metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 15px; margin: 20px 0; }
+.metric-card { border: 1px solid var(--line); padding: 21px; background: var(--paper); border-radius: 14px; }
+.metric-card span, .metric-card p { font-size: 11px; color: #819071; margin: 0; }
+.metric-card b, .metric-card strong { display: block; font-size: 28px; margin: 12px 0 5px; letter-spacing: -1px; }
+.dashboard-banner { display: flex; align-items: center; justify-content: space-between; gap: 25px; background: var(--ink); color: var(--paper); padding: 28px; border-radius: 18px; margin: 25px 0; }
+.dashboard-banner h2 { margin-bottom: 9px; font-size: 22px; }
+.dashboard-banner p { color: #bdcbb9; font-size: 12px; margin: 0; }
+.dashboard-banner .primary { background: var(--lime); color: var(--ink); flex-shrink: 0; }
+.dashboard-banner .secondary { color: #f7f9ef; border-color: #799386; }
+.dashboard-banner .secondary:hover { background: #2d5547; }
+.dashboard-banner .text-button { color: #d1dfb8; }
+.dashboard-banner .eyebrow { color: #c5d896; }
+.dashboard-banner .order-actions { border-color: #446759; flex-wrap: wrap; }
+.profile-editor { padding: 28px; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); max-width: 900px; }
+.profile-editor > h2 { font-size: 21px; margin-bottom: 8px; }
+.photo-preview { display: flex; gap: 10px; width: 100%; height: auto; border-radius: 15px; background: #e5e8d8; overflow: hidden; margin: 20px 0 10px; }
+.photo-preview > img, .photo-preview > svg { width: calc((100% - 20px) / 3); max-width: 140px; aspect-ratio: 4 / 5; height: auto; object-fit: cover; border-radius: 10px; flex-shrink: 0; }
+.photo-preview > .muted { padding: 18px; }
+.upload-label { display: inline-flex; align-items: center; justify-content: center; padding: 10px 15px; margin: 0 0 8px; border: 1px dashed #b4c09f; border-radius: 9px; font-size: 12px; cursor: pointer; background: #f5f6ed; }
+.upload-label input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); padding: 0; border: 0; }
+.guideline { background: #eff2e5; border-radius: 11px; padding: 15px 17px; margin: 18px 0; color: #758664; font-size: 12px; line-height: 1.85; }
+.guideline h3 { color: #526a43; font-size: 13px; margin-bottom: 6px; }
+.guideline p { margin: 0; }
+.install-banner { display: flex; align-items: center; justify-content: space-between; gap: 16px; border: 1px solid #dfe6cb; background: #eef2e1; padding: 16px 20px; border-radius: 13px; margin: 24px 0; }
+.install-banner p { font-size: 12px; color: #788c63; margin: 4px 0 0; }
+.install-banner strong { font-size: 13px; }
+.app-footer { max-width: 1200px; margin: 22px auto 0; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 20px; padding: 23px 0; color: #95a089; font-size: 10px; line-height: 1.8; }
+.income-note, .prototype-note { font-size: 11px; line-height: 1.8; color: #87957b; }
+.prototype-note { border-radius: 10px; padding: 12px 15px; background: #eeefe5; }
+.review-banner { display: flex; justify-content: space-between; align-items: center; gap: 12px; border: 1px solid #eadcc8; background: #faf1e5; padding: 15px 18px; border-radius: 11px; margin: 18px 0; font-size: 12px; color: #92724e; }
+.review-banner p { margin: 0; }
+.profile-toggle { display: flex; align-items: center; gap: 9px; font-size: 12px; }
+.profile-toggle input { width: 17px; height: 17px; }
+@media (max-width: 1100px) {
+  .app-header { padding: 0 32px; gap: 20px; }
+  .desktop-nav { gap: 22px; }
+  .header-location { display: none; }
+  .hero { gap: 30px; }
+  .hero-portrait { width: 170px; height: 220px; left: 14px; }
+  .hero-portrait:nth-child(2) { right: 10px; }
+  .profile-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 17px; }
+  .profile-cover { height: 250px; }
+  .app-footer { margin: 22px 32px 0; }
+}
+@media (max-width: 800px) {
+  .app-header { height: 73px; gap: 15px; }
+  .desktop-nav { gap: 18px; }
+  .header-actions .primary { padding: 10px 12px; font-size: 11px; }
+  .hero { gap: 14px; padding-top: 35px; }
+  .hero-copy h1 { font-size: 38px; }
+  .hero-visual { height: 290px; }
+  .hero-portrait { width: 145px; height: 205px; left: 0; }
+  .hero-portrait:nth-child(2) { right: 0; top: 58px; }
+  .hero-visual::before { width: 220px; height: 220px; left: 8%; }
+  .hero-caption { left: 12px; font-size: 10px; padding: 10px; }
+  .profile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .profile-cover { height: 300px; }
+  .activity-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .detail-layout { grid-template-columns: .9fr 1fr; gap: 25px; }
+  .detail-gallery > .profile-cover { height: 445px; }
+  .detail-title { display: block; }
+  .detail-title .hourly-price { display: block; margin-top: 12px; }
+  .metric-grid { gap: 10px; }
+  .metric-card { padding: 15px; }
+}
+@media (max-width: 600px) {
+  body { padding-bottom: calc(74px + env(safe-area-inset-bottom)); }
+  .app-header { height: 67px; padding: 0 19px; border-bottom: 0; gap: 11px; }
+  .brand { font-size: 21px; gap: 8px; }
+  .brand-mark { width: 31px; height: 31px; border-radius: 10px; font-size: 22px; }
+  .header-location { display: inline-flex; font-size: 10px; margin-top: 2px; }
+  .desktop-nav, .header-actions > .primary { display: none; }
+  .header-actions { gap: 4px; }
+  .header-actions > .secondary { padding: 8px 10px; font-size: 10px; min-height: 34px; }
+  .header-actions > .secondary svg { width: 13px; height: 13px; }
+  .icon-button { width: 33px; height: 33px; }
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 40; display: grid; grid-template-columns: repeat(4, 1fr); padding: 7px 10px calc(9px + env(safe-area-inset-bottom)); background: #fffefaf5; backdrop-filter: blur(18px); border-top: 1px solid #e7e9df; }
+  .bottom-nav .nav-item { display: flex; align-items: center; flex-direction: column; gap: 4px; font-size: 9px; padding: 5px 0 2px; }
+  .nav-icon { height: 25px; display: grid; place-items: center; }
+  .nav-icon svg { width: 22px; height: 22px; }
+  .bottom-nav .is-active .nav-icon { background: #ebf1d6; border-radius: 9px; width: 42px; }
+  .app-main { padding: 0 18px 20px; min-height: calc(100dvh - 168px); }
+  .hero { gap: 8px; padding: 20px 0 22px; grid-template-columns: 1.25fr 1fr; }
+  .hero-pill { font-size: 8px; padding: 5px 7px; gap: 5px; letter-spacing: 0; }
+  .hero-copy h1 { font-size: 24px; letter-spacing: -1px; margin: 13px 0 11px; line-height: 1.37; }
+  .hero-copy .eyebrow { font-size: 8px; letter-spacing: 1.2px; }
+  .hero-copy > p { font-size: 10px; line-height: 1.8; margin-bottom: 15px; }
+  .hero-copy > .primary { min-height: 35px; border-radius: 9px; padding: 9px 12px; font-size: 10px; }
+  .hero-copy > .secondary { display: none; }
+  .hero-stats { gap: 9px; font-size: 8px; margin: 0 0 13px; white-space: nowrap; }
+  .hero-stats b, .hero-stats strong { font-size: 13px; margin-bottom: 2px; }
+  .hero-visual { height: 222px; margin-top: 10px; }
+  .hero-visual::before { width: 150px; height: 150px; left: 0; top: 30px; }
+  .hero-visual::after { top: -4px; right: -1px; font-size: 41px; }
+  .hero-portrait { width: 106px; height: 142px; left: 0; top: 10px; border-width: 4px; border-radius: 15px; }
+  .hero-portrait:nth-child(2) { width: 105px; height: 145px; top: 65px; right: -1px; border-radius: 15px; }
+  .hero-caption { bottom: 1px; left: -9px; padding: 7px 9px; font-size: 8px; border-radius: 8px; }
+  .hero-caption b { font-size: 9px; margin-bottom: 1px; }
+  .hero-portrait .hero-caption { padding: 6px; font-size: 8px; }
+  .hero-portrait .hero-caption span { font-size: 6px; }
+  .hero-visual > .hero-pill { top: 9px; right: 0; font-size: 7px; padding: 4px 6px; }
+  .section-heading { margin: 20px 0 15px; gap: 8px; }
+  .section-heading h2 { font-size: 20px; margin-bottom: 5px; }
+  .section-heading p { font-size: 10px; }
+  .section-heading > .text-button { font-size: 10px; white-space: nowrap; }
+  .filter-strip { gap: 6px; flex-wrap: nowrap; overflow: auto; margin: 0 -18px; padding: 0 18px 4px; scrollbar-width: none; }
+  .filter-strip::-webkit-scrollbar { display: none; }
+  .filter-chip { padding: 8px 12px; font-size: 10px; }
+  .filter-controls { margin: 12px 0 16px; gap: 8px; }
+  .filter-controls > div { gap: 5px; }
+  .filter-controls select { min-height: 36px; padding: 8px 4px 8px 8px; font-size: 10px; max-width: 95px; }
+  .search-box { min-width: 0; }
+  .search-box input { padding: 10px 9px 10px 30px; font-size: 10px; min-height: 36px; }
+  .search-box svg { left: 10px; top: 11px; width: 13px; height: 13px; }
+  .profile-grid { gap: 11px; }
+  .profile-card { border-radius: 13px; }
+  .profile-cover { height: clamp(174px, 49vw, 246px); }
+  .profile-body { padding: 11px; }
+  .profile-name { font-size: 14px; gap: 4px; }
+  .profile-name span { font-size: 9px; }
+  .profile-meta { font-size: 9px; margin-bottom: 8px; }
+  .tag { font-size: 8px; padding: 3px 5px; }
+  .interest-tags { gap: 4px; }
+  .profile-bio { font-size: 10px; min-height: 34px; margin: 9px 0 10px; }
+  .profile-footer { gap: 3px; padding-top: 10px; }
+  .hourly-price { font-size: 16px; }
+  .hourly-price small { font-size: 8px; }
+  .profile-footer .primary { min-height: 29px; font-size: 9px; padding: 6px 8px; }
+  .profile-overlay { inset: auto 8px 8px; }
+  .profile-overlay > span { padding: 4px 5px; font-size: 8px; }
+  .favorite { width: 26px; height: 26px; top: 8px; right: 8px; font-size: 15px; }
+  .sample-label { left: 8px; top: 10px; font-size: 8px; padding: 3px 4px; }
+  .page-heading { margin: 24px 0 23px; }
+  .page-heading h1 { font-size: 28px; }
+  .page-heading p { font-size: 12px; }
+  .detail-layout { display: block; margin-top: 0; }
+  .back-button { padding-top: 9px; }
+  .detail-gallery { max-width: 440px; margin: 0 auto 22px; border-radius: 19px; }
+  .detail-gallery > .profile-cover { height: 390px; }
+  .detail-title { display: flex; }
+  .detail-title h1 { font-size: 29px; }
+  .detail-title .hourly-price { font-size: 24px; margin: 0; }
+  .detail-stats { justify-content: space-between; gap: 10px; font-size: 11px; }
+  .detail-block p { font-size: 12px; }
+  .booking-bar { padding: 13px; }
+  .booking-bar .primary { min-height: 40px; font-size: 12px; }
+  .dialog-backdrop { padding: 13px; }
+  .dialog { padding: 22px; border-radius: 20px; max-height: calc(100dvh - 26px); }
+  .dialog-head h2, .dialog-head h3 { font-size: 20px; }
+  .row { gap: 11px; }
+  .toast { bottom: calc(85px + env(safe-area-inset-bottom)); font-size: 12px; padding: 11px 16px; }
+  .activity-grid { grid-template-columns: 1fr; gap: 13px; }
+  .activity-card { padding: 20px; }
+  .order-card { padding: 16px; }
+  .order-summary { gap: 12px; flex-wrap: wrap; }
+  .order-summary > svg { width: 48px; height: 57px; }
+  .order-card h3 { font-size: 15px; }
+  .order-summary .status { font-size: 9px; }
+  .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+  .metric-card { padding: 16px; }
+  .metric-card b, .metric-card strong { font-size: 24px; }
+  .dashboard-banner { padding: 20px; display: block; }
+  .dashboard-banner h2 { font-size: 20px; }
+  .dashboard-banner .primary { margin-top: 16px; }
+  .profile-editor { padding: 20px 16px; }
+  .profile-editor .row { grid-template-columns: 1fr; gap: 0; }
+  .guideline { font-size: 11px; padding: 13px; }
+  .install-banner { padding: 13px; gap: 10px; margin: 20px 0; }
+  .install-banner p { font-size: 10px; }
+  .install-banner strong { font-size: 12px; }
+  .install-banner .secondary { font-size: 10px; padding: 8px 10px; min-height: 34px; white-space: nowrap; }
+  .app-footer { margin: 17px 18px 0; padding: 17px 0; display: block; font-size: 9px; }
+  .app-footer span { display: block; }
+  .review-banner { align-items: flex-start; padding: 12px; font-size: 11px; }
+}
+@media (max-width: 360px) {
+  .hero-visual { overflow: clip; }
+  .hero-copy h1 { font-size: 21px; }
+  .profile-footer .primary svg { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+}
+
+/* Community App surfaces; loaded after the shared marketplace styles. */
+.app-main { max-width: 1264px; }
+.app-header { height: 76px; }
+.c-home, .c-section, .c-detail, .c-compose, .c-thread { min-width: 0; }
+.c-home { padding-top: 25px; }
+.c-hero { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; align-items: center; overflow: hidden; position: relative; background: #173c32; color: #fffefa; border-radius: 23px; padding: 30px; margin-top: 16px; }
+.c-boards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 13px; margin: 20px 0 25px; }
+.c-board { display: flex; flex-direction: column; align-items: flex-start; text-align: left; text-decoration: none; position: relative; min-width: 0; min-height: 133px; padding: 17px; border-radius: 17px; background: #e9edda; transition: transform .18s ease; }
+.c-board:nth-child(2) { background: #eee4d9; }
+.c-board:nth-child(3) { background: #dfe8eb; }
+.c-board:nth-child(4) { background: #ece1e6; }
+.c-board:hover { transform: translateY(-2px); }
+.c-board-icon { display: grid; place-items: center; width: 35px; height: 35px; border-radius: 11px; background: #fffefa80; font-size: 22px; margin-bottom: 9px; }
+.c-board-icon svg { width: 21px; height: 21px; }
+.c-board-title { font-size: 15px; font-weight: 750; margin-bottom: 4px; }
+.c-board-description { font-size: 11px; color: #697767; line-height: 1.65; }
+.c-board > strong { font-size: 15px; margin-bottom: 4px; }
+.c-board > small { color: #697767; font-size: 11px; line-height: 1.65; }
+.c-request-card { display: block; text-decoration: none; border: 1px solid var(--line); background: var(--paper); padding: 22px; border-radius: 17px; min-width: 0; }
+.c-request-card .c-title { margin-top: 4px; }
+.c-request-card > p { font-size: 12px; color: #7c8674; }
+.c-request-card .c-footer { margin-top: 17px; }
+.c-detail { display: grid; grid-template-columns: .85fr 1.2fr; align-items: start; gap: 32px; margin-bottom: 28px; }
+.c-detail-cover { border-radius: 20px; overflow: hidden; min-width: 0; position: relative; background: #e4e6d9; }
+.c-detail-cover > .portrait-art { height: 430px; width: 100%; object-fit: cover; }
+.c-detail-body { min-width: 0; }
+.c-detail-body > h1 { font-size: 30px; line-height: 1.5; margin-bottom: 10px; letter-spacing: -.7px; overflow-wrap: anywhere; }
+.c-detail-body p { font-size: 13px; color: #75826c; }
+.c-detail-body h2 { font-size: 18px; margin: 22px 0 12px; }
+.c-packages { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin: 14px 0; }
+.c-package { padding: 15px; border: 1px solid var(--line); border-radius: 11px; background: var(--paper); text-align: left; min-width: 0; font-size: 12px; line-height: 1.7; }
+.c-package strong, .c-package b { display: block; font-size: 15px; margin-bottom: 5px; }
+.c-package small { display: block; color: #7b886f; margin-top: 6px; font-size: 11px; }
+.c-package.selected, .c-package[aria-pressed='true'] { background: #eef2de; border-color: #9eaf7a; box-shadow: inset 0 0 0 1px #9eaf7a; }
+.c-publish-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.c-thread { max-width: 800px; margin: 0 auto; }
+.c-bubble { max-width: min(85%, 510px); align-self: flex-start; border: 1px solid #e6e8db; border-radius: 15px 15px 15px 4px; padding: 12px 15px; background: var(--paper); font-size: 13px; line-height: 1.8; overflow-wrap: anywhere; white-space: pre-wrap; }
+.c-bubble p { margin: 0; }
+.c-bubble small { display: block; font-size: 9px; color: #8b957f; margin-top: 4px; }
+.c-bubble.mine { align-self: flex-end; background: #e4edc6; border-color: #dce6ba; border-radius: 15px 15px 4px 15px; }
+.c-bubble.system { align-self: center; max-width: 100%; background: transparent; border: 0; font-size: 11px; color: #8a947f; text-align: center; padding: 4px 0; }
+.c-review { padding: 16px; border: 1px solid var(--line); border-radius: 12px; margin: 12px 0; background: var(--paper); }
+.c-review p { font-size: 12px; line-height: 1.9; margin: 8px 0 0; }
+.c-empty { grid-column: 1 / -1; padding: 43px 20px; text-align: center; border: 1px dashed #d5dec5; border-radius: 17px; background: #f0f3e7; font-size: 13px; line-height: 1.9; color: #79876f; }
+.c-empty h2, .c-empty h3 { color: var(--ink); font-size: 18px; margin-bottom: 9px; }
+.c-home button:focus-visible, .c-feed-card a:focus-visible, .c-board:focus-visible, .c-publish-choice:focus-visible { outline: 3px solid #8ca760; outline-offset: 3px; }
+/* Shared component names used by the community renderer. */
+.c-hero:not(:has(.c-hero-art)) { display: block; background: radial-gradient(circle at 105% 85%, #466748 0 18%, transparent 18.2%), #173c32; }
+.c-hero > h1 { position: relative; max-width: 600px; font-size: 32px; line-height: 1.45; margin: 11px 0 10px; letter-spacing: -.9px; }
+.c-hero > p { max-width: 550px; color: #c6d1c1; font-size: 13px; margin-bottom: 0; }
+.c-hero > .eyebrow { color: #dbea9a; font-size: 10px; }
+.c-hero > h1 span { color: var(--lime); }
+.c-hero-link { display: inline-flex; align-items: center; gap: 7px; text-decoration: none; margin-top: 18px; padding: 9px 12px; border-radius: 9px; font-size: 12px; color: var(--ink); background: var(--lime); }
+.c-hero-link svg { width: 16px; height: 16px; }
+.c-heading { display: flex; justify-content: space-between; align-items: center; gap: 13px; margin: 23px 0 15px; }
+.c-heading h1, .c-heading h2 { margin: 0 0 5px; font-size: 23px; letter-spacing: -.5px; }
+.c-heading p { font-size: 12px; color: #7c8972; margin: 0; }
+.c-heading > .text-button { flex-shrink: 0; white-space: nowrap; }
+.c-search { display: flex; align-items: center; gap: 9px; border-radius: 12px; background: #ecefe4; padding: 0 13px; margin: 18px 0; }
+.c-search > svg { width: 18px; height: 18px; color: #7b8b6b; flex-shrink: 0; }
+.c-search input { background: transparent; border: 0; padding: 13px 0; width: 100%; min-width: 0; font-size: 14px; }
+.c-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 13px; scrollbar-width: none; }
+.c-tabs > button { background: #eceee4; border-radius: 20px; padding: 9px 14px; min-height: 38px; flex-shrink: 0; font-size: 12px; white-space: nowrap; }
+.c-tabs > button.selected, .c-tabs > button[aria-pressed='true'] { color: var(--paper); background: var(--ink); }
+.c-feed { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 17px; }
+.c-feed.requests { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.c-service-card { display: block; text-decoration: none; position: relative; border: 1px solid var(--line); border-radius: 17px; overflow: hidden; min-width: 0; background: var(--paper); }
+.c-service-card a { color: inherit; text-decoration: none; }
+.c-card-art { position: relative; height: 210px; background: #e4e6d9; overflow: hidden; }
+.c-card-art .portrait-art { width: 100%; height: 100%; object-fit: cover; }
+.c-pill { display: inline-flex; position: absolute; left: 10px; top: 10px; padding: 5px 7px; font-size: 9px; border-radius: 6px; color: #52664a; background: #fffefadd; }
+.c-card-content { padding: 16px; }
+.c-card-content h2, .c-card-content h3 { font-size: 17px; line-height: 1.55; letter-spacing: -.25px; margin: 6px 0 8px; overflow-wrap: anywhere; }
+.c-card-content > p { font-size: 11px; color: #7b8673; margin: 6px 0 11px; line-height: 1.7; }
+.c-kicker { color: #6c8157; font-size: 10px; letter-spacing: .3px; }
+.c-card-content footer, .c-request-card footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 11px; border-top: 1px solid #eeefe6; font-size: 11px; color: #7c8973; }
+.c-card-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 5px; border-top: 1px solid #edefe5; padding-top: 12px; margin-top: 12px; color: #7a8970; font-size: 10px; }
+.c-card-footer strong { color: var(--ink); font-size: 15px; letter-spacing: -.3px; }
+.c-kicker > span { float: right; color: #929887; font-size: 9px; }
+.c-card-content > p { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.c-request-list, .c-posts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.c-request-meta, .c-detail-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 12px; color: #819173; font-size: 11px; line-height: 1.8; }
+.c-request-meta svg { width: 12px; height: 12px; }
+.c-request-detail { max-width: 760px; padding: 27px; background: var(--paper); border: 1px solid var(--line); border-radius: 19px; margin: 5px auto 25px; }
+.c-request-detail > h1 { font-size: 29px; line-height: 1.6; margin: 12px 0; overflow-wrap: anywhere; }
+.c-applicant { padding: 17px; border: 1px solid var(--line); border-radius: 12px; margin: 12px 0; }
+.c-applicant h3 { font-size: 16px; margin: 0 0 8px; }
+.c-applicant p { color: #7d8873; font-size: 12px; }
+.c-request-card h2, .c-request-card h3 { font-size: 17px; line-height: 1.6; margin: 9px 0 10px; overflow-wrap: anywhere; }
+.c-provider-row { display: flex; align-items: center; gap: 12px; margin: 14px 0 20px; min-width: 0; }
+.c-provider-row > div { min-width: 0; }
+.c-provider-row h2, .c-provider-row h3 { margin: 0 0 5px; font-size: 18px; }
+.c-provider-row p { margin: 0; font-size: 11px; color: #819073; }
+.c-avatar { display: grid; place-items: center; width: 56px; height: 56px; flex: 0 0 56px; overflow: hidden; border-radius: 50%; background: #e3e8d9; }
+.c-avatar .portrait-art, .c-avatar > svg, .c-avatar > img { width: 100%; height: 100%; object-fit: cover; }
+.c-publish-card { display: block; padding: 24px; min-width: 0; border: 1px solid var(--line); background: var(--paper); border-radius: 17px; text-align: left; text-decoration: none; }
+.c-publish-card:hover { background: #f0f3e6; border-color: #b2c29b; }
+.c-publish-card h2, .c-publish-card h3 { font-size: 18px; margin: 13px 0 8px; }
+.c-publish-card p { font-size: 12px; color: #7f8b73; margin: 0; }
+.c-publish-card > span { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: #edf1df; margin-bottom: 12px; }
+.c-publish-card > span svg { width: 22px; height: 22px; }
+.c-publish-card > strong { display: block; font-size: 18px; margin-bottom: 8px; }
+.c-owned-services, .c-order-list { display: grid; gap: 11px; }
+.c-my-services { margin: 25px 0; min-width: 0; }
+.c-my-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 11px; margin: 15px 0 20px; }
+.c-my-stats a { background: var(--paper); border: 1px solid var(--line); border-radius: 13px; padding: 18px 14px; text-align: center; text-decoration: none; min-width: 0; }
+.c-my-stats strong { display: block; color: var(--ink); font-size: 25px; letter-spacing: -.5px; margin-bottom: 5px; }
+.c-my-stats span { color: #829273; font-size: 11px; }
+.c-owned-service { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-width: 0; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); text-decoration: none; }
+.c-owned-service > div { min-width: 0; }
+.c-owned-service a { text-decoration: none; }
+.c-owned-service h3 { font-size: 15px; line-height: 1.6; margin: 0 0 6px; overflow-wrap: anywhere; }
+.c-owned-service p { color: #819173; font-size: 11px; margin: 0; }
+.c-owned-service button { flex-shrink: 0; }
+.c-income-preview { background: var(--ink); color: var(--paper); padding: 24px; border-radius: 17px; margin: 24px 0; }
+.c-income-preview strong { font-size: 19px; }
+.c-income-preview p { color: #c1cfb9; font-size: 12px; margin: 10px 0 0; }
+.c-thread-list { display: grid; gap: 11px; }
+.c-thread-row { display: flex; align-items: center; gap: 13px; min-height: 95px; padding: 18px; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; text-decoration: none; min-width: 0; }
+.c-thread-row > div:not(.c-avatar):not(.c-thread-avatar) { min-width: 0; flex: 1; }
+.c-thread-row h2, .c-thread-row h3, .c-thread-row strong { font-size: 15px; display: block; margin-bottom: 5px; }
+.c-thread-row p { font-size: 12px; color: #87917c; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.c-thread-row small { display: block; font-size: 10px; color: #87917c; margin-top: 4px; overflow-wrap: anywhere; }
+.c-thread-row > span { flex: 0 0 auto; color: #819173; font-size: 10px; max-width: 95px; }
+.c-thread-avatar { display: grid; place-items: center; width: 49px; height: 49px; flex: 0 0 49px; border-radius: 15px; background: #e7eccf; font-size: 22px; }
+.c-thread-heading { padding: 12px 0 18px; border-bottom: 1px solid var(--line); }
+.c-thread-heading h1 { font-size: 24px; margin-bottom: 6px; }
+.c-thread-heading p { color: #7e8b73; font-size: 12px; margin: 0; }
+.c-unread { display: inline-block; padding: 3px 6px; background: #f3e4d3; color: #a9794a; border-radius: 5px; font-size: 9px; margin-left: 5px; }
+.c-message-list { min-height: 260px; padding: 22px 0; display: flex; flex-direction: column; gap: 12px; }
+.c-bubble--mine { align-self: flex-end; background: #e4edc6; border-color: #dce6ba; border-radius: 15px 15px 4px 15px; }
+.c-composer { position: sticky; bottom: 10px; display: flex; align-items: flex-end; gap: 9px; padding: 11px; background: #f8f6f1f5; border: 1px solid var(--line); border-radius: 14px; backdrop-filter: blur(12px); z-index: 3; }
+.c-composer textarea { height: 46px; min-height: 46px; max-height: 140px; resize: none; min-width: 0; flex: 1; font-size: 16px; }
+.c-composer input { flex: 1; min-width: 0; width: 100%; font-size: 16px; }
+.c-composer .primary { flex-shrink: 0; min-height: 46px; }
+.c-order { padding: 18px; border: 1px solid #dfe4d3; border-radius: 14px; background: #eef2e3; margin: 18px 0; font-size: 12px; }
+.c-order h2, .c-order h3 { font-size: 16px; margin-bottom: 9px; }
+.c-order p { font-size: 12px; color: #78876c; margin-bottom: 8px; }
+.c-demo-note { color: #847554; background: #f2eee1; border-radius: 10px; padding: 11px 14px; font-size: 11px; line-height: 1.75; margin: 15px 0; }
+.c-cta-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 15px 0 0; }
+.c-cta-row .primary, .c-cta-row .secondary { min-height: 43px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+@media (max-width: 800px) {
+  .c-feed { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .c-boards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .c-detail { grid-template-columns: .9fr 1.1fr; gap: 22px; }
+  .c-detail-cover > .portrait-art { height: 350px; }
+  .c-detail-body > h1 { font-size: 25px; }
+}
+@media (max-width: 600px) {
+  .app-header { height: 61px; padding: 0 17px; }
+  .brand { font-size: 20px; }
+  .brand-mark { width: 29px; height: 29px; }
+  .header-actions { min-width: 0; }
+  .header-actions > .secondary { max-width: 105px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .app-main { padding: 0 16px 24px; }
+  .filter-strip { margin-inline: -16px; padding-inline: 16px; }
+  .c-home { padding-top: 14px; }
+  .c-hero { padding: 21px 19px; gap: 5px; grid-template-columns: 1.65fr .8fr; border-radius: 19px; }
+  .c-hero > h1 { font-size: 23px; max-width: 250px; letter-spacing: -.6px; }
+  .c-hero > p { font-size: 11px; max-width: 265px; }
+  .c-heading { margin: 20px 0 13px; }
+  .c-heading h1, .c-heading h2 { font-size: 21px; }
+  .c-heading p { font-size: 11px; }
+  .c-search { margin: 15px 0; }
+  .c-search input { font-size: 16px; }
+  .c-feed { gap: 10px; }
+  .c-feed.requests { grid-template-columns: 1fr; }
+  .c-service-card { border-radius: 13px; }
+  .c-card-art { height: clamp(145px, 40vw, 210px); }
+  .c-card-content { padding: 11px; }
+  .c-card-content h2, .c-card-content h3 { font-size: 13px; line-height: 1.6; margin: 5px 0 7px; }
+  .c-card-content > p, .c-kicker { font-size: 9px; }
+  .c-card-content footer { font-size: 9px; flex-wrap: wrap; gap: 5px; }
+  .c-card-footer { font-size: 8px; padding-top: 9px; margin-top: 9px; }
+  .c-card-footer strong { font-size: 13px; }
+  .c-feed > .c-request-card { grid-column: 1 / -1; }
+  .c-request-list, .c-posts { grid-template-columns: 1fr; gap: 12px; }
+  .c-request-detail { padding: 21px 16px; }
+  .c-request-detail > h1 { font-size: 25px; }
+  .c-owned-service { padding: 15px; gap: 10px; }
+  .c-owned-service h3 { font-size: 14px; }
+  .c-my-stats { gap: 8px; }
+  .c-my-stats a { padding: 15px 8px; }
+  .c-my-stats strong { font-size: 22px; }
+  .c-my-stats span { font-size: 10px; }
+  .c-publish-card { padding: 19px; }
+  .c-thread-row { padding: 15px; gap: 11px; }
+  .c-thread-row .c-avatar { width: 46px; height: 46px; flex-basis: 46px; }
+  .c-thread-row p { font-size: 11px; }
+  .c-thread-row > span { max-width: 65px; font-size: 9px; }
+  .c-thread-avatar { width: 43px; height: 43px; flex-basis: 43px; border-radius: 12px; }
+  .c-composer { bottom: calc(78px + env(safe-area-inset-bottom)); padding: 9px; }
+  .c-composer .primary { padding: 11px 13px; }
+  .c-boards { gap: 9px; margin: 15px 0 20px; }
+  .c-board { padding: 13px; min-height: 109px; border-radius: 14px; }
+  .c-board-icon { width: 30px; height: 30px; margin-bottom: 8px; font-size: 19px; border-radius: 9px; }
+  .c-board-title { font-size: 14px; margin-bottom: 3px; }
+  .c-board-description { font-size: 10px; line-height: 1.6; }
+  .c-board > strong { font-size: 14px; }
+  .c-board > small { font-size: 10px; }
+  .c-request-card { padding: 17px; border-radius: 14px; }
+  .c-request-card .c-title { font-size: 16px; }
+  .c-request-card .c-meta { font-size: 11px; }
+  .c-request-card .c-author { font-size: 11px; }
+  .c-detail { display: block; }
+  .c-detail-cover { margin-bottom: 21px; border-radius: 18px; }
+  .c-detail-cover > .portrait-art { height: 320px; }
+  .c-detail-body > h1 { font-size: 25px; }
+  .c-packages { gap: 8px; }
+  .c-package { padding: 12px; }
+  .c-package strong, .c-package b { font-size: 14px; }
+  .c-publish-grid { grid-template-columns: 1fr; gap: 11px; }
+  input, select, textarea, .search-box input, .filter-controls select { font-size: 16px; }
+  .c-bubble { max-width: 89%; font-size: 13px; padding: 11px 13px; }
+  .bottom-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); padding-top: 5px; }
+  .bottom-nav .nav-item { min-height: 53px; gap: 4px; }
+  .bottom-nav .nav-item[data-publish] .nav-icon, .bottom-nav .nav-item[href='#publish'] .nav-icon { width: 38px; height: 38px; margin-top: -10px; border-radius: 50%; background: var(--lime); color: var(--ink); box-shadow: 0 0 0 5px var(--paper); }
+  .bottom-nav .nav-item[data-publish], .bottom-nav .nav-item[href='#publish'] { color: var(--ink); }
+  .profile-editor, .dashboard-banner, .metric-card, .order-card { min-width: 0; overflow-wrap: anywhere; }
+  .dashboard-banner .order-actions { justify-content: flex-start; }
+}
+@media (max-width: 360px) {
+  .header-location { display: none; }
+  .c-hero { padding: 18px 15px; }
+  .c-detail-cover > .portrait-art { height: 285px; }
+}
+</style></head><body><div id="app"></div><noscript>请开启 JavaScript 体验交互原型。</noscript><script>const __demoModules = {};
+__demoModules[0] = (() => {
+
+function quote(rate, hours) {
+  if (!Number.isFinite(rate) || rate < 0 || !Number.isFinite(hours) || hours < 1 || hours > 8) throw new Error('请选择 1–8 小时');
+  return Math.round(rate * hours * 100) / 100;
+}
+function filterActivities(items, { category = '全部', area = '全部区域', mode = '全部方式', query = '' } = {}) {
+  return items.filter(a => (category === '全部' || a.category === category) && (area === '全部区域' || a.area === area) && (mode === '全部方式' || a.mode === mode) && `${a.title} ${a.name} ${a.description} ${a.area}`.toLowerCase().includes(query.trim().toLowerCase()));
+}
+function validateActivity(a) {
+  if (!a.title.trim() || !a.description.trim()) return '请填写活动标题和说明';
+  if (!a.date || a.date < new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })) return '请选择今天或之后的日期';
+  if (!a.time) return '请选择活动时间';
+  if (a.mode === '付费陪伴' && (!Number.isFinite(a.rate) || a.rate < 10 || a.rate > 200)) return '时薪须为 A$10–200';
+  return '';
+}
+
+return { quote, filterActivities, validateActivity };
+})();
+__demoModules[1] = (() => {
+
+// Prototype pricing in AUD. Production orders must calculate and store cents on the server.
+const PLATFORM_FEE_BPS = 1500;
+
+const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+const MELBOURNE = 'Australia/Melbourne';
+const textLength = value => typeof value === 'string' ? [...value.trim()].length : 0;
+const validRate = rate => Number.isFinite(rate) && rate >= 0 && rate <= 200
+  && Math.abs(rate * 100 - Math.round(rate * 100)) < 1e-8;
+
+function localClock() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: MELBOURNE, year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  }).formatToParts(new Date());
+  return Object.fromEntries(parts.filter(part => part.type !== 'literal').map(part => [part.type, part.value]));
+}
+
+function parseDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value ? date : null;
+}
+
+/** Melbourne's calendar date, offset by whole days (independent of DST and host timezone). */
+function MelbourneDate(offset = 0) {
+  if (!Number.isInteger(offset)) throw new Error('日期偏移须为整数天');
+  const { year, month, day } = localClock();
+  const date = new Date(`${year}-${month}-${day}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + offset);
+  return date.toISOString().slice(0, 10);
+}
+
+/** Customer pays total; platform fee is deducted from the provider's earnings. */
+function bookingBreakdown(rate, hours, minHours = 1, feeBps = PLATFORM_FEE_BPS) {
+  if (!validRate(rate)) throw new Error('时薪须为 A$0–200，最多两位小数');
+  if (!Number.isInteger(minHours) || minHours < 1 || minHours > 8
+      || !Number.isInteger(hours) || hours < minHours || hours > 8) {
+    throw new Error(`请选择 ${Number.isInteger(minHours) && minHours >= 1 && minHours <= 8 ? minHours : 1}–8 小时`);
+  }
+  if (!Number.isInteger(feeBps) || feeBps < 0 || feeBps > 10000) throw new Error('平台费率须为 0–10000 基点');
+  const totalCents = Math.round(rate * 100) * hours;
+  const feeCents = Math.round(totalCents * feeBps / 10000);
+  return { total: totalCents / 100, platformFee: feeCents / 100, providerEarnings: (totalCents - feeCents) / 100 };
+}
+
+function filterProfiles(items, {
+  query = '', service = '全部', area = '全部区域', gender = '不限', maxRate = 200, sort = '推荐',
+} = {}) {
+  const search = String(query).trim().toLowerCase();
+  const profiles = items.filter(profile => profile.active !== false
+    && (service === '全部' || profile.services?.includes(service))
+    && (area === '全部区域' || profile.area === area)
+    && (gender === '不限' || profile.gender === gender)
+    && Number.isFinite(profile.rate) && profile.rate <= maxRate
+    && [profile.name, profile.bio, profile.area, ...(profile.services || [])].join(' ').toLowerCase().includes(search));
+  if (sort === '价格从低到高') profiles.sort((a, b) => a.rate - b.rate);
+  if (sort === '价格从高到低') profiles.sort((a, b) => b.rate - a.rate);
+  return profiles;
+}
+
+function validateProfile(profile) {
+  if (!profile || typeof profile !== 'object') return '请填写展示资料';
+  if (textLength(profile.name) < 1 || textLength(profile.name) > 24) return '昵称须为 1–24 字';
+  if (!Number.isInteger(profile.age) || profile.age < 18 || profile.age > 80) return '年龄须为 18–80 岁';
+  if (!['女生', '男生', '其他'].includes(profile.gender)) return '请选择性别';
+  if (textLength(profile.area) < 1 || textLength(profile.area) > 40) return '请填写服务区域，最多 40 字';
+  if (textLength(profile.bio) < 10 || textLength(profile.bio) > 300) return '个人介绍须为 10–300 字';
+  if (!Array.isArray(profile.services) || profile.services.length < 1 || profile.services.length > 6
+      || profile.services.some(service => textLength(service) < 1 || textLength(service) > 20)
+      || new Set(profile.services.map(service => service.trim())).size !== profile.services.length) {
+    return '请选择 1–6 个不同的活动服务';
+  }
+  if (!validRate(profile.rate) || profile.rate < 10) return '时薪须为 A$10–200，最多两位小数';
+  if (!Number.isInteger(profile.minHours) || profile.minHours < 1 || profile.minHours > 8) return '最低预约时长须为 1–8 小时';
+  if (!Array.isArray(profile.available) || profile.available.length < 1 || profile.available.length > 7
+      || profile.available.some(day => !WEEKDAYS.includes(day))
+      || new Set(profile.available).size !== profile.available.length) return '请选择至少一个可预约的星期';
+  if (profile.active !== undefined && typeof profile.active !== 'boolean') return '展示状态无效';
+  return '';
+}
+
+function validateReservation(profile, reservation) {
+  if (!profile || profile.active === false) return '该资料暂未开放预约';
+  if (!validRate(profile.rate) || profile.rate < 10
+      || !Number.isInteger(profile.minHours) || profile.minHours < 1 || profile.minHours > 8
+      || !Array.isArray(profile.available)) return '该资料的预约设置无效';
+  const { date, time, hours, message } = reservation || {};
+  const parsed = parseDate(date);
+  if (!parsed || date < MelbourneDate() || date > MelbourneDate(60)) return '请选择今天起 60 天内的有效日期';
+  if (!profile.available.includes(WEEKDAYS[parsed.getUTCDay()])) return '对方在这一天未开放预约，请选择其他日期';
+  if (typeof time !== 'string' || !/^\d{2}:\d{2}$/.test(time)) return '请选择 09:00–22:00 的开始时间';
+  const [hour, minute] = time.split(':').map(Number);
+  const startMinutes = hour * 60 + minute;
+  if (hour > 23 || minute > 59 || startMinutes < 540 || startMinutes > 1320) return '请选择 09:00–22:00 的开始时间';
+  if (!Number.isInteger(hours) || hours < profile.minHours || hours > 8) return `预约时长须为 ${profile.minHours}–8 小时`;
+  if (startMinutes + hours * 60 >= 1440) return '活动须在当天午夜前结束，请调整时间或时长';
+  if (date === MelbourneDate()) {
+    const now = localClock();
+    if (startMinutes <= Number(now.hour) * 60 + Number(now.minute)) return '请选择尚未开始的墨尔本当地时间';
+  }
+  if (textLength(message) < 1 || textLength(message) > 300) return '预约留言须为 1–300 字';
+  return '';
+}
+
+return { PLATFORM_FEE_BPS, MelbourneDate, bookingBreakdown, filterProfiles, validateProfile, validateReservation };
+})();
+__demoModules[2] = (() => {
+const { MelbourneDate } = __demoModules[1];
+
+const weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+const services = ['吃饭探店', '咖啡聊天', '逛街漫步', '看展拍照', '运动健身', '桌游电影'];
+const areas = ['CBD', 'Carlton', 'Clayton'];
+const sampleProfiles = [
+  { id: 'p1', name: 'Emma', age: 24, gender: '女生', area: 'CBD', rate: 35, minHours: 2, services: ['吃饭探店', '看展拍照', '咖啡聊天'], bio: '喜欢把普通的一天过得有趣一点。可以一起探新餐厅、看展，也可以找一家咖啡店慢慢聊。中文和英文都能交流。', tagline: '把日常，过成一点小浪漫。', available: weekdays, languages: '普通话 · English', color: '#ddccbf', style: 0, active: true, sample: true, photos: [] },
+  { id: 'p2', name: '小鹿', age: 23, gender: '女生', area: 'Carlton', rate: 28, minHours: 1, services: ['逛街漫步', '咖啡聊天', '看展拍照'], bio: '在墨尔本读设计，喜欢花、旧书店和周末市集。如果你也想有人陪着逛逛，我们可以从一杯咖啡开始。', tagline: '一起发现城市里的小美好。', available: weekdays, languages: '普通话 · English', color: '#ccd6bb', style: 1, active: true, sample: true, photos: [] },
+  { id: 'p3', name: 'Lucas', age: 26, gender: '男生', area: 'CBD', rate: 30, minHours: 2, services: ['运动健身', '逛街漫步', '吃饭探店'], bio: '喜欢运动和户外，也喜欢聊电影和音乐。陪你打球、一起散步，或者找家餐厅尝点新东西。轻松相处，尊重彼此节奏。', tagline: '有人同行，周末就不一样。', available: weekdays, languages: '普通话 · English', color: '#c5d3cf', style: 2, active: true, sample: true, photos: [] },
+  { id: 'p4', name: '圆圆', age: 25, gender: '女生', area: 'Clayton', rate: 20, minHours: 1, services: ['桌游电影', '吃饭探店', '咖啡聊天'], bio: '桌游爱好者，性格慢热但熟了话很多。喜欢边吃饭边聊生活，也愿意陪你看一场电影。活动费用提前说清楚。', tagline: '慢热没关系，先碰个面。', available: weekdays, languages: '普通话', color: '#d9c7d4', style: 3, active: true, sample: true, photos: [] },
+  { id: 'p5', name: '阿哲', age: 27, gender: '男生', area: 'Clayton', rate: 25, minHours: 1, services: ['运动健身', '桌游电影', '吃饭探店'], bio: '住在 Clayton，喜欢羽毛球和休闲桌游。可以陪你练球或参与小型聚会，不追求输赢，开心和舒服最重要。', tagline: '一起出点汗，再好好吃一顿。', available: weekdays, languages: '普通话 · 粤语', color: '#e0d4b7', style: 4, active: true, sample: true, photos: [] },
+  { id: 'p6', name: 'Jess', age: 24, gender: '女生', area: 'CBD', rate: 32, minHours: 2, services: ['看展拍照', '逛街漫步', '咖啡聊天'], bio: '喜欢摄影和艺术，愿意陪你在墨尔本找一个好看的角落，留下生活的片段。拍照是活动的一部分，不是专业摄影服务。', tagline: '在城市里，留下一点好心情。', available: weekdays, languages: '普通话 · English', color: '#ced2dc', style: 5, active: true, sample: true, photos: [] },
+];
+
+const sampleActivities = [
+  { id: 's1', title: '周末火锅局，就差一个你', category: '美食', area: 'CBD', mode: '免费搭子', name: '小林', emoji: '🍲', description: '一起吃热腾腾的火锅，聊聊在墨尔本的生活。欢迎新朋友。', date: MelbourneDate(2), time: '18:30', rate: 0, cost: '餐费 AA，每人预计 A$35–50' },
+  { id: 's3', title: '羽毛球双打，快乐出汗', category: '运动', area: 'Clayton', mode: '免费搭子', name: '阿哲', emoji: '🏸', description: '休闲双打，不卷水平。带上球拍，一起运动！', date: MelbourneDate(1), time: '19:00', rate: 0, cost: '场地费 AA，每人预计 A$12–18' },
+  { id: 's5', title: '桌游新手局，一起破冰', category: '娱乐', area: 'CBD', mode: '免费搭子', name: '圆圆', emoji: '🎲', description: '规则有人教，新手也能玩。来一场轻松的桌游。', date: MelbourneDate(4), time: '16:00', rate: 0, cost: '入场费各自支付，预计 A$15' },
+];
+
+return { weekdays, services, areas, sampleProfiles, sampleActivities };
+})();
+__demoModules[3] = (() => {
+
+const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const money = value => `A$${Number(value).toLocaleString('en-AU', { minimumFractionDigits: Number.isInteger(Number(value)) ? 0 : 2, maximumFractionDigits: 2 })}`;
+const options = (items, selected) => items.map(x => `<option ${x === selected ? 'selected' : ''}>${esc(x)}</option>`).join('');
+const paths = {
+  discover: '<circle cx="12" cy="12" r="9"/><path d="m16 8-2.5 5.5L8 16l2.5-5.5Z"/>',
+  activity: '<path d="M4 7h16v13H4zM7 4v6M17 4v6M4 12h16M8 16h2M14 16h2"/>',
+  orders: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v3H9zM9 11h6M9 15h6"/>',
+  requests: '<path d="M5 4h14v16H5zM9 8h6M9 12h6M9 16h3"/>',
+  messages: '<path d="M21 11a8 8 0 0 1-8 8H7l-5 3V11a9 9 0 0 1 19 0Z"/><path d="M7 10h10M7 14h6"/>',
+  coffee: '<path d="M4 8h12v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4ZM16 9h2a3 3 0 0 1 0 6h-2M7 2v3M12 2v3M2 22h18"/>',
+  sparkles: '<path d="m12 2 3 7 7 3-7 3-3 7-3-7-7-3 7-3Z"/>',
+  me: '<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/>',
+  heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',
+  pin: '<path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
+  search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
+  arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  back: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  share: '<path d="M12 16V3M7 8l5-5 5 5M5 12v8h14v-8"/>',
+  wallet: '<path d="M20 7H5a2 2 0 0 1 0-4h13v4M4 5v15h16V7M20 12h-6v5h6"/>',
+};
+const icon = name => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.discover}</svg>`;
+
+function portrait(profile, photoIndex = 0) {
+  const photo = profile.photos?.[photoIndex];
+  if (typeof photo === 'string' && /^data:image\/(jpeg|png|webp);base64,/.test(photo)) return `<img class="portrait-art" src="${esc(photo)}" alt="${esc(profile.name)}的展示照片">`;
+  const i = Number(profile.style || 0) % 6;
+  const backgrounds = ['#ddccbf', '#ccd6bb', '#c5d3cf', '#d9c7d4', '#e0d4b7', '#ced2dc'];
+  const shirts = ['#f9f4e8', '#314c3c', '#f4ece0', '#795d76', '#334b48', '#f5f2e9'];
+  const skin = ['#e5b99b', '#e8c5a6', '#c99070', '#e5b296', '#ddb291', '#eac6aa'][i];
+  const longHair = profile.gender !== '男生';
+  return `<svg class="portrait-art" viewBox="0 0 320 370" role="img" aria-label="${esc(profile.name)}的示例插画"><rect width="320" height="370" fill="${backgrounds[i]}"/><circle cx="262" cy="75" r="84" fill="#ffffff25"/><path d="M0 275Q150 180 320 270V370H0Z" fill="#ffffff20"/><path d="M52 370v-36c0-65 44-107 108-107s108 42 108 107v36" fill="${shirts[i]}"/>${longHair ? '<path d="M91 150c-7-83 20-115 68-115 53 0 78 37 72 117l16 123H76Z" fill="#39302a"/>' : '<path d="M91 109c0-47 31-74 69-74 43 0 71 24 70 79v54H92Z" fill="#39302a"/>'}<path d="M138 209v38q22 20 44 0v-38" fill="${skin}"/><ellipse cx="160" cy="142" rx="60" ry="79" fill="${skin}"/><path d="M96 113c-4-56 25-83 63-83 39 0 66 30 64 83-27-4-46-27-59-51-12 24-40 42-68 51Z" fill="#39302a"/><path d="M125 144h9M186 144h9" stroke="#39302a" stroke-width="4" stroke-linecap="round"/><path d="M147 183q13 12 26 0" stroke="#a26953" fill="none" stroke-width="3" stroke-linecap="round"/><path d="m144 162 4 9h-8" stroke="#bd896e" fill="none" stroke-width="2"/><circle cx="112" cy="163" r="8" fill="#e7a891" opacity=".55"/><circle cx="207" cy="163" r="8" fill="#e7a891" opacity=".55"/>${i % 2 ? '<circle cx="99" cy="168" r="4" fill="#e5d287"/><circle cx="220" cy="168" r="4" fill="#e5d287"/>' : ''}<path d="m131 239 29 40 29-40" stroke="#9caa9d" stroke-width="2" fill="none"/><path d="M0 355h320v15H0Z" fill="#19352c08"/></svg>`;
+}
+
+return { esc, money, options, icon, portrait };
+})();
+__demoModules[4] = (() => {
+const { MelbourneDate } = __demoModules[1];
+const { weekdays } = __demoModules[2];
+
+
+// All people, experiences and demand posts below are fictional product examples.
+// These cards do not imply verified employment or endorsement by any employer.
+const demoProviders = [
+  {
+    id: 'career-1', name: '林舟', age: 29, gender: '男生', area: 'CBD',
+    role: '金融求职经验交流', experience: '金融从业经历 · 示例资料',
+    bio: '可以一起梳理金融行业的求职准备，聊简历表达、面试练习和工作中的日常。交流分享个人经验，不保证面试、内推或录用结果。',
+    tagline: '把你的职业问题，一起聊清楚。', services: ['金融求职', 'Coffee Chat'],
+    available: weekdays, languages: '普通话 · English', color: '#c5d3cf', style: 2,
+    active: true, sample: true, photos: [], verification: '资料自述 · 未核验',
+  },
+  {
+    id: 'career-2', name: 'Iris', age: 28, gender: '女生', area: 'Carlton',
+    role: '产品与科技职业交流', experience: '产品管理经历 · 示例资料',
+    bio: '想了解产品经理的一天、准备转行，或者把项目经历说得更清楚？欢迎带着具体问题来聊。这里只提供经验交流，不承诺就业结果。',
+    tagline: '让下一步，有一点方向。', services: ['产品经理', '转行交流'],
+    available: weekdays, languages: '普通话 · English', color: '#ced2dc', style: 5,
+    active: true, sample: true, photos: [], verification: '资料自述 · 未核验',
+  },
+  {
+    id: 'career-3', name: '阿宁', age: 27, gender: '女生', area: 'CBD',
+    role: '设计作品集与职业交流', experience: '设计行业经历 · 示例资料',
+    bio: '一起看看作品集的讲述顺序、项目目标和你最想表达的优势。可以从一个项目开始讨论，也可以聊设计岗位与面试准备。',
+    tagline: '让好作品，也有好表达。', services: ['作品集', '设计求职'],
+    available: weekdays, languages: '普通话 · English', color: '#d9c7d4', style: 3,
+    active: true, sample: true, photos: [], verification: '资料自述 · 未核验',
+  },
+];
+
+const demoServices = [
+  {
+    id: 'c1', providerId: 'career-1', providerName: '林舟', title: '金融行业 Coffee Chat', domain: 'career',
+    priceType: 'session', active: true, format: '线上', area: 'CBD',
+    description: '聊金融行业、求职准备与面试经验。带上你的问题，选择 30 或 60 分钟交流。',
+    tags: ['金融', '求职', 'Coffee Chat'],
+    packages: [{ id: 'c1-30', label: '30 分钟 · 聚焦一个问题', minutes: 30, price: 100 },
+      { id: 'c1-60', label: '60 分钟 · 深入交流', minutes: 60, price: 180 }],
+  },
+  {
+    id: 'c2', providerId: 'career-2', providerName: 'Iris', title: '转行产品经理，从哪里开始？', domain: 'career',
+    priceType: 'session', active: true, format: '线上', area: 'Carlton',
+    description: '围绕你的经历讨论产品岗位、项目表达和下一步准备，提供具体的交流方向。',
+    tags: ['科技', '产品经理', '转行'],
+    packages: [{ id: 'c2-30', label: '30 分钟 · 职业方向交流', minutes: 30, price: 60 },
+      { id: 'c2-60', label: '60 分钟 · 项目经历讨论', minutes: 60, price: 110 }],
+  },
+  {
+    id: 'c3', providerId: 'career-3', providerName: '阿宁', title: '设计作品集，一起看看表达', domain: 'career',
+    priceType: 'session', active: true, format: '线下', area: 'CBD',
+    description: '在 CBD 咖啡馆聊你的设计作品集，讨论项目叙事和展示重点。饮品各自支付。',
+    tags: ['设计', '作品集', '职业交流'],
+    packages: [{ id: 'c3-30', label: '30 分钟 · 一个项目', minutes: 30, price: 50 },
+      { id: 'c3-60', label: '60 分钟 · 作品集结构', minutes: 60, price: 90 }],
+  },
+  {
+    id: 'c4', providerId: 'career-3', providerName: '阿宁', title: '设计求职 Coffee Chat', domain: 'career',
+    priceType: 'session', active: true, format: '线上', area: 'CBD',
+    description: '讨论设计岗位和面试准备，分享日常工作经验。根据个人背景一起整理下一步。',
+    tags: ['设计', '求职', 'Coffee Chat'],
+    packages: [{ id: 'c4-30', label: '30 分钟 · 求职经验', minutes: 30, price: 45 }],
+  },
+];
+
+const demoRequests = [
+  {
+    id: 'r1', name: '小陈', ownerId: 'demo-requester-1', title: '想请金融从业者聊聊求职准备',
+    description: '正在准备金融方向的实习申请，希望有人分享简历和面试准备经验。线上聊 30 分钟，不要求内推。',
+    domain: 'career', budget: 100, durationMinutes: 30, format: '线上', area: '墨尔本',
+    date: MelbourneDate(2), time: '14:00', status: '招募中', sample: true, applications: [], tags: ['金融', '求职'],
+  },
+  {
+    id: 'r2', name: 'Lily', ownerId: 'demo-requester-2', title: '刚到墨尔本，找人陪我熟悉 CBD',
+    description: '第一次来墨尔本，想请熟悉 CBD 的朋友一起走走，了解超市、交通和日常生活。交通与餐费各自支付。',
+    domain: 'life', budget: 60, durationMinutes: 120, format: '线下', area: 'CBD',
+    date: MelbourneDate(3), time: '14:00', status: '招募中', sample: true, applications: [], tags: ['新到墨尔本', '生活'],
+  },
+  {
+    id: 'r3', name: 'Jason', ownerId: 'demo-requester-3', title: '周末想找羽毛球陪练，新手友好',
+    description: '刚开始打羽毛球，希望找个朋友一起练习基础动作和轻松对打。不是专业课程，场地费另外 AA。',
+    domain: 'activity', budget: 40, durationMinutes: 60, format: '线下', area: 'Clayton',
+    date: MelbourneDate(4), time: '17:00', status: '招募中', sample: true, applications: [], tags: ['羽毛球', '运动'],
+  },
+];
+
+return { demoProviders, demoServices, demoRequests };
+})();
+__demoModules[5] = (() => {
+const { PLATFORM_FEE_BPS, bookingBreakdown, MelbourneDate } = __demoModules[1];
+
+const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+const length = value => typeof value === 'string' ? [...value.trim()].length : 0;
+const validMoney = (value, max = 2000) => Number.isFinite(value) && value >= 10 && value <= max
+  && Math.abs(value * 100 - Math.round(value * 100)) < 1e-8;
+const money = value => `A$${value.toLocaleString('en-AU', { maximumFractionDigits: 2 })}`;
+
+function parseDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value ? parsed : null;
+}
+
+function MelbourneClockMinutes() {
+  const parts = new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Melbourne', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return Number(values.hour) * 60 + Number(values.minute);
+}
+
+/** Monetary outputs are AUD; multiplication and fee rounding use integer cents. */
+function serviceQuote(service, { hours = 1, packageId = null } = {}) {
+  if (!service || typeof service !== 'object') throw new Error('请选择有效的服务');
+  if (service.priceType === 'hour') {
+    if (!validMoney(service.rate, 200)) throw new Error('时薪须为 A$10–200，最多两位小数');
+    const breakdown = bookingBreakdown(service.rate, hours, service.minHours ?? 1);
+    return { ...breakdown, durationMinutes: hours * 60, priceLabel: `${money(service.rate)}／小时` };
+  }
+  if (service.priceType !== 'session') throw new Error('该服务的计价方式无效');
+  const selected = service.packages?.find(item => item.id === packageId);
+  if (!selected) throw new Error('请选择一个交流套餐');
+  if (!validMoney(selected.price)) throw new Error('套餐价格须为 A$10–2,000，最多两位小数');
+  if (!Number.isInteger(selected.minutes) || selected.minutes < 15 || selected.minutes > 480) {
+    throw new Error('套餐时长须为 15–480 分钟');
+  }
+  const cents = Math.round(selected.price * 100);
+  const feeCents = Math.round(cents * PLATFORM_FEE_BPS / 10000);
+  return {
+    total: cents / 100,
+    platformFee: feeCents / 100,
+    providerEarnings: (cents - feeCents) / 100,
+    durationMinutes: selected.minutes,
+    priceLabel: `${money(selected.price)}／${selected.minutes} 分钟`,
+  };
+}
+
+function validateServiceReservation(service, reservation, available = WEEKDAYS) {
+  if (!service || service.active === false) return '该服务暂未开放预约';
+  let quote;
+  try { quote = serviceQuote(service, reservation || {}); } catch (error) { return error.message; }
+  const { date, time, message } = reservation || {};
+  const parsed = parseDate(date);
+  if (!parsed || date < MelbourneDate() || date > MelbourneDate(60)) return '请选择今天起 60 天内的有效日期';
+  if (!Array.isArray(available) || !available.includes(WEEKDAYS[parsed.getUTCDay()])) {
+    return '对方在这一天未开放预约，请选择其他日期';
+  }
+  if (typeof time !== 'string' || !/^\d{2}:\d{2}$/.test(time)) return '请选择 09:00–22:00 的开始时间';
+  const [hour, minute] = time.split(':').map(Number);
+  const start = hour * 60 + minute;
+  if (hour > 23 || minute > 59 || start < 540 || start > 1320) return '请选择 09:00–22:00 的开始时间';
+  if (start + quote.durationMinutes >= 1440) return '服务须在当天午夜前结束，请调整时间或时长';
+  if (date === MelbourneDate() && start <= MelbourneClockMinutes()) return '请选择尚未开始的墨尔本当地时间';
+  if (length(message) < 1 || length(message) > 300) return '预约留言须为 1–300 字';
+  return '';
+}
+
+function validateRequest(request) {
+  if (!request || typeof request !== 'object') return '请填写需求内容';
+  if (length(request.title) < 1 || length(request.title) > 60) return '需求标题须为 1–60 字';
+  if (length(request.description) < 10 || length(request.description) > 800) return '需求说明须为 10–800 字';
+  if (!['career', 'life', 'activity'].includes(request.domain)) return '请选择需求分类';
+  if (!validMoney(request.budget)) return '预算须为 A$10–2,000，最多两位小数';
+  if (!Number.isInteger(request.durationMinutes) || request.durationMinutes < 15 || request.durationMinutes > 480) {
+    return '预计时长须为 15–480 分钟';
+  }
+  if (!['线上', '线下'].includes(request.format)) return '请选择线上或线下';
+  if ((request.format === '线下' && length(request.area) < 1) || length(request.area) > 40
+      || (request.area !== undefined && typeof request.area !== 'string')) return '请填写服务区域，最多 40 字';
+  if (!parseDate(request.date) || request.date < MelbourneDate() || request.date > MelbourneDate(60)) {
+    return '请选择今天起 60 天内的有效日期';
+  }
+  return '';
+}
+
+function filterServices(items, {
+  domain = 'all', query = '', area = 'all', format = 'all', sort = '推荐',
+} = {}) {
+  const search = String(query).trim().toLowerCase();
+  const results = items.filter(service => service.active !== false
+    && (domain === 'all' || service.domain === domain)
+    && (area === 'all' || service.area === area)
+    && (format === 'all' || service.format === format)
+    && [service.title, service.description, service.providerName, service.area, ...(service.tags || [])]
+      .join(' ').toLowerCase().includes(search));
+  const price = service => service.priceType === 'hour' ? service.rate
+    : Math.min(...(service.packages || []).map(item => item.price));
+  if (sort === '价格从低到高') results.sort((a, b) => price(a) - price(b));
+  if (sort === '价格从高到低') results.sort((a, b) => price(b) - price(a));
+  return results;
+}
+
+/** The prototype makes role simulation explicit; a server must enforce participants in production. */
+function transitionDemoOrder(order, action) {
+  const next = {
+    '待确认': { accept: '待付款', reject: '已拒绝', cancel: '已取消' },
+    '待付款': { pay: '已预约', cancel: '已取消' },
+    '已预约': { complete: '已完成', cancel: '已取消' },
+  }[order?.status]?.[action];
+  if (!next) throw new Error('当前订单状态不能执行此操作');
+  return { ...order, status: next };
+}
+
+return { serviceQuote, validateServiceReservation, validateRequest, filterServices, transitionDemoOrder };
+})();
+__demoModules[6] = (() => {
+const { demoServices: seedServices, demoProviders, demoRequests: seedRequests } = __demoModules[4];
+const { serviceQuote: quoteNative, validateServiceReservation: validateReservationNative, validateRequest: validateRequestNative, filterServices: filterNative, transitionDemoOrder: transitionNative } = __demoModules[5];
+const { MelbourneDate } = __demoModules[1];
+
+
+
+const demoServices = seedServices.map(s => ({ ...s, pricing: s.priceType === 'hour' ? 'hourly' : 'package', mode: s.format, topics: s.tags || [] }));
+const demoRequests = seedRequests.map(r => ({ ...r, domain: r.domain === 'life' ? 'help' : r.domain === 'activity' ? 'companion' : r.domain, mode: r.format }));
+const nativeService = s => ({ ...s, priceType: s.pricing === 'hourly' ? 'hour' : 'session', format: s.mode, tags: s.topics });
+const serviceQuote = (s, r) => quoteNative(nativeService(s), r);
+const validateServiceReservation = (s, r) => !r.adult ? '请确认已满 18 岁并理解这是演示预约' : validateReservationNative(nativeService(s), r);
+const validateRequest = r => !r.adult ? '请确认已满 18 岁' : validateRequestNative({ ...r, domain: r.domain === 'help' ? 'life' : r.domain === 'companion' ? 'activity' : r.domain, format: r.mode });
+const filterServices = (items, f) => filterNative(items.map(nativeService), { ...f, domain: f.domain === '全部' ? 'all' : f.domain }).map(s => ({ ...s, pricing: s.priceType === 'hour' ? 'hourly' : 'package', mode: s.format, topics: s.tags }));
+const nativeStatuses = { pending: '待确认', accepted: '待付款', paid: '已预约', completed: '已完成', cancelled: '已取消', rejected: '已拒绝' };
+const transitionDemoOrder = (order, action) => { const next = transitionNative({ ...order, status: nativeStatuses[order.status] }, action); return { ...next, status: Object.keys(nativeStatuses).find(k => nativeStatuses[k] === next.status) }; };
+
+/** Browser-only community prototype. Every remote action requires an explicit demo button. */
+function createCommunity({ navigate, toast, showModal, closeModal, profileList, portrait, esc, money, icon, options, renderRoot, openActivity }) {
+  const $ = selector => document.querySelector(selector);
+  const read = key => { try { const data = JSON.parse(localStorage.getItem(`mates.v3.${key}`) || '[]'); return Array.isArray(data) ? data : []; } catch { return []; } };
+  let ownServices = read('services'), ownRequests = read('requests'), applications = read('applications'), orders = read('orders'), threads = read('threads'), posts = read('posts');
+  let filter = { query: '', domain: '全部' }, requestTab = 'all';
+  const uid = () => globalThis.crypto?.randomUUID?.() || `demo-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+  const refresh = () => renderRoot ? renderRoot() : navigate(decodeURIComponent(location.hash.slice(1) || 'discover'));
+  const allServices = () => [...ownServices, ...demoServices];
+  const allRequests = () => [...ownRequests, ...demoRequests];
+  const findService = id => allServices().find(s => s.id === id);
+  const self = () => profileList().find(p => p.sample === false) || { id: 'self', name: '我的展示', style: 1, bio: '我的时间与经验', area: 'CBD', gender: '其他' };
+  const provider = service => service.owner === 'self' ? { ...self(), name: service.providerName || self().name, headline: service.headline || '我的服务', sample: false } : demoProviders.find(p => p.id === service.providerId) || { name: '示例服务者', style: 2, sample: true };
+  const isMine = item => item?.owner === 'self';
+  const domainNames = { career: '职业交流', companion: '活动陪伴', help: '有偿求助', activity: '兴趣搭子' };
+  const domainName = key => domainNames[key] || key || '有偿求助';
+  const modeName = s => s.mode || '线上';
+  const packageList = s => s.packages || [];
+  const priceLabel = s => s.pricing === 'hourly' ? `${money(s.rate)} / 小时` : packageList(s).length ? `${money(packageList(s)[0].price)} / ${packageList(s)[0].minutes} 分钟` : money(s.price || 0);
+  const splitAmount = amount => { const cents = Math.round(amount * 100), fee = Math.round(cents * 0.15); return { total: cents / 100, platformFee: fee / 100, providerEarnings: (cents - fee) / 100 }; };
+  const back = (to = 'discover', text = '返回发现') => `<a href="#${esc(to)}" class="back-button">${icon('back')} ${esc(text)}</a>`;
+  const note = '<p class="c-demo-note">交互演示 · 资料为虚构示例，发布和消息只保存在当前浏览器，预约不扣款。</p>';
+  const empty = (text, link = 'publish', label = '发布一个需求') => `<div class="empty"><p>${esc(text)}</p><a class="primary" href="#${esc(link)}">${esc(label)} ${icon('arrow')}</a></div>`;
+  function persist(changes) {
+    const previous = {};
+    try { for (const key of Object.keys(changes)) previous[key] = localStorage.getItem(`mates.v3.${key}`); for (const [key, value] of Object.entries(changes)) localStorage.setItem(`mates.v3.${key}`, JSON.stringify(value)); return true; }
+    catch { for (const [key, value] of Object.entries(previous)) { try { value === null ? localStorage.removeItem(`mates.v3.${key}`) : localStorage.setItem(`mates.v3.${key}`, value); } catch { /* Keep the visible state intact. */ } } toast('浏览器未允许本地存储，或空间不足；内容未保存'); return false; }
+  }
+  function commit(changes) {
+    if (!persist(changes)) return false;
+    if (changes.services) ownServices = changes.services;
+    if (changes.requests) ownRequests = changes.requests;
+    if (changes.applications) applications = changes.applications;
+    if (changes.orders) orders = changes.orders;
+    if (changes.threads) threads = changes.threads;
+    if (changes.posts) posts = changes.posts;
+    return true;
+  }
+  function serviceCard(s) {
+    const p = provider(s);
+    return `<a class="c-service-card" href="#service/${esc(s.id)}"><div class="c-card-art">${portrait(p)}<span class="c-pill">${esc(domainName(s.domain))}</span></div><div class="c-card-content"><div class="c-kicker">${esc(p.name)} · ${esc(modeName(s))}</div><h3>${esc(s.title)}</h3><p>${esc(s.description)}</p><div class="interest-tags">${(s.topics || []).slice(0, 2).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div><div class="c-card-footer"><strong>${priceLabel(s)}</strong><span>${isMine(s) ? '我的服务' : '查看服务 ↗'}</span></div></div></a>`;
+  }
+  function requestCard(r) {
+    return `<a class="c-request-card" href="#request/${esc(r.id)}"><div class="c-kicker">需求 · ${esc(domainName(r.domain))}<span>${isMine(r) ? '我的发布' : '虚构示例'}</span></div><h3>${esc(r.title)}</h3><p>${esc(r.description)}</p><div class="c-request-meta">${icon('pin')} ${esc(r.area)} · ${esc(r.mode || '线上')} ${r.date ? `· ${esc(r.date)}` : ''}</div><div class="c-card-footer"><strong>预算 ${money(r.budget)}</strong><span>${r.closed ? '已选人' : '看看能否帮忙 ↗'}</span></div></a>`;
+  }
+  function home(careerOnly = false) {
+    const searched = filterServices(allServices(), { query: filter.query, domain: careerOnly ? 'career' : filter.domain });
+    const requests = allRequests().filter(r => !r.closed && (careerOnly ? r.domain === 'career' : filter.domain === '全部' || r.domain === filter.domain) && `${r.title} ${r.description}`.toLowerCase().includes(filter.query.toLowerCase()));
+    const list = careerOnly ? searched.map(serviceCard).join('') : [...searched.slice(0, 2).map(serviceCard), ...requests.slice(0, 2).map(requestCard), ...searched.slice(2).map(serviceCard)].join('');
+    return `${careerOnly ? back() : ''}<section class="c-hero"><div class="eyebrow">${careerOnly ? 'A CONVERSATION CAN OPEN A DOOR' : 'MELBOURNE · MEET, SHARE, GROW'}</div><h1>${careerOnly ? '一杯咖啡，<span>一个新视角。</span>' : '你的时间和经验，<br><span>都值得被看见。</span>'}</h1><p>${careerOnly ? '预约一次职业交流，也可以发出你的问题和预算。' : '找人同行，向有经验的人请教，或让自己的能力被需要。'}</p><a class="c-hero-link" href="#publish">把我的时间和经验挂出来 ${icon('arrow')}</a></section>${careerOnly ? '' : `<div class="c-boards"><a class="c-board" data-domain="companion" href="#companions"><span class="c-board-icon">${icon('heart')}</span><strong>活动陪伴</strong><small>有人同行的日常</small></a><a class="c-board" data-domain="career" href="#career"><span class="c-board-icon">${icon('coffee')}</span><strong>职业交流</strong><small>向经历请教</small></a><a class="c-board" data-domain="help" href="#requests"><span class="c-board-icon">${icon('sparkles')}</span><strong>有偿求助</strong><small>让难题有人接</small></a><a class="c-board" data-domain="activity" href="#activities"><span class="c-board-icon">${icon('activity')}</span><strong>兴趣搭子</strong><small>免费结伴一起玩</small></a></div>`}<div class="c-heading"><div><div class="eyebrow">${careerOnly ? 'PEOPLE & PERSPECTIVES' : 'A LITTLE TIME, A NEW POSSIBILITY'}</div><h2>${careerOnly ? '找到可以聊的人' : '发现值得碰个面的人和事'}</h2></div><a href="#requests" class="text-button">需求广场 ↗</a></div><div class="c-search">${icon('search')}<input id="c-search" type="search" value="${esc(filter.query)}" placeholder="搜索服务、经历或需求" aria-label="搜索社区内容"></div>${careerOnly ? '' : `<div class="c-tabs">${[['全部', '为你推荐'], ['career', '职业交流'], ['help', '有偿求助'], ['companion', '活动陪伴']].map(([value, text]) => `<button class="filter-chip ${filter.domain === value ? 'selected' : ''}" data-c-filter="${value}">${text}</button>`).join('')}</div>`}<div class="c-feed" id="c-feed">${list || empty('暂时没有符合搜索的内容。', 'publish', '发布我的需求')}</div>${posts.length && !careerOnly ? `<div class="c-heading"><h2>社区经验</h2></div><div class="c-posts">${posts.map(p => `<article class="c-request-card"><div class="c-kicker">${esc(p.name)} · 我的分享</div><h3>${esc(p.title)}</h3><p>${esc(p.text)}</p></article>`).join('')}</div>` : ''}${note}`;
+  }
+  function requestsPage() {
+    const list = allRequests().filter(r => requestTab === 'mine' ? isMine(r) : !r.closed);
+    return `<div class="page-heading"><div class="eyebrow">ASK FOR WHAT YOU NEED</div><h1>你的难题，<span>也许有人会。</span></h1><p>说清楚需要什么，给一个合理的预算，让合适的人来找你。</p></div><div class="c-heading"><div class="c-tabs"><button class="filter-chip ${requestTab === 'all' ? 'selected' : ''}" data-c-request-tab="all">需求广场</button><button class="filter-chip ${requestTab === 'mine' ? 'selected' : ''}" data-c-request-tab="mine">我的需求 ${ownRequests.length}</button></div><button class="primary" data-c-publish="request">${icon('plus')} 发布需求</button></div><div class="c-request-list">${list.map(requestCard).join('') || empty('还没有需求，先说说你需要什么。')}</div>${note}`;
+  }
+  function serviceDetail(s) {
+    if (!s) return back() + empty('这个服务暂时不存在。');
+    const p = provider(s);
+    return `${back(s.domain === 'career' ? 'career' : 'discover', '返回服务发现')}<div class="c-detail"><div class="c-detail-cover">${portrait(p)}<span class="sample-label">${isMine(s) ? '我的服务 · 当前设备' : '虚构示例人物'}</span></div><section class="c-detail-body"><div class="c-kicker">${esc(domainName(s.domain))} · ${esc(s.area)} · ${esc(modeName(s))}</div><h1>${esc(s.title)}</h1><div class="c-provider-row"><div class="c-avatar">${portrait(p)}</div><div><h3>${esc(p.name)}</h3><p>${esc(s.headline || p.headline || p.role || '每个人都有值得分享的经历')}</p><small>${isMine(s) ? '个人资料尚未核验' : '示例经历 · 未核验'}</small></div></div><div class="detail-block"><h3>这次可以一起做什么</h3><p>${esc(s.description)}</p><div class="interest-tags">${(s.topics || []).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div></div><div class="detail-block"><h3>时间与价格</h3><div class="c-packages">${s.pricing === 'hourly' ? `<div class="c-package"><strong>${money(s.rate)} / 小时</strong><span>${s.minHours || 1} 小时起约</span></div>` : packageList(s).map(p => `<div class="c-package"><span>${esc(p.label || `${p.minutes} 分钟交流`)}</span><strong>${money(p.price)}</strong></div>`).join('')}</div></div><div class="guideline"><strong>先聊清楚，再开始。</strong><p>${s.domain === 'career' ? '交流仅分享个人经验，不代表所在公司，不承诺内推、录用或投资收益。' : '提前确认具体服务、见面地点、额外费用与双方边界。'} 预约时间以双方确认结果为准。</p></div><div class="booking-bar"><div class="hourly-price">${priceLabel(s)}</div><button class="primary" data-c-book="${esc(s.id)}" ${s.active === false ? 'disabled' : ''}>${isMine(s) ? '预览客户预约' : '预约这项服务'} ${icon('arrow')}</button></div>${isMine(s) ? `<div class="c-cta-row"><button class="secondary" data-c-inquiry="${esc(s.id)}">生成演示预约</button><button class="text-button" data-c-toggle-service="${esc(s.id)}">${s.active === false ? '重新上架' : '暂停服务'}</button></div>` : ''}${note}</section></div>`;
+  }
+  function requestDetail(r) {
+    if (!r) return back('requests', '返回需求广场') + empty('这个需求暂时不存在。');
+    const applicants = applications.filter(a => a.requestId === r.id);
+    return `${back('requests', '返回需求广场')}<article class="c-request-detail"><div class="c-kicker">${esc(domainName(r.domain))} · ${isMine(r) ? '我的需求' : '虚构示例需求'}</div><h1>${esc(r.title)}</h1><div class="c-detail-meta"><span>${esc(r.name)}发布</span><span>${esc(r.area)} · ${esc(r.mode)}</span><span>${esc(r.date || '时间双方商量')}</span></div><div class="detail-block"><h3>我需要什么帮助</h3><p>${esc(r.description)}</p></div><div class="price-list"><div class="price-line total"><span>本次预算</span><strong>${money(r.budget)}</strong></div><p class="income-note">服务范围与时长确认后再模拟付款。平台佣金 15% 由接单方承担；免费活动开销另行约定。</p></div>${isMine(r) ? `<div class="c-heading"><h2>申请帮忙的人</h2>${r.closed ? '<span class="tag">已选择服务者</span>' : `<button class="secondary" data-c-generate-apply="${esc(r.id)}">生成演示申请</button>`}</div>${applicants.length ? applicants.map(a => `<article class="c-applicant"><h3>${esc(a.name)} ${a.sample ? '<span class="tag">演示申请</span>' : ''}</h3><p>${esc(a.reason)}</p>${r.closed ? `<span class="status">${r.selectedApplicant === a.id ? '已选中' : '未选中'}</span>` : `<button class="primary" data-c-select-applicant="${esc(a.id)}">选择这位帮忙的人</button>`}</article>`).join('') : '<div class="empty">还没有申请。你可以点击“生成演示申请”，体验选择服务者。</div>'}` : `<button class="primary full" data-c-apply="${esc(r.id)}" ${r.closed || applicants.some(a => a.owner === 'self') ? 'disabled' : ''}>${r.closed ? '该需求已选人' : applicants.some(a => a.owner === 'self') ? '我已提交申请' : '我可以帮忙，申请接单'} ${icon('arrow')}</button>`}${note}</article>`;
+  }
+  function publishPage() {
+    return `<div class="page-heading"><div class="eyebrow">YOUR TIME, YOUR POSSIBILITIES</div><h1>你想把什么，<span>带给社区？</span></h1><p>既可以提供时间和经验，也可以提出一个需要帮助的问题。</p></div><div class="c-publish-grid"><button class="c-publish-card" data-c-publish="service"><span>${icon('sparkles')}</span><strong>提供服务</strong><p>设定自己的内容、时长和价格</p></button><button class="c-publish-card" data-c-publish="request"><span>${icon('orders')}</span><strong>发布需求</strong><p>说清楚问题和预算，等人来帮忙</p></button><button class="c-publish-card" data-c-publish="activity"><span>${icon('activity')}</span><strong>发起活动</strong><p>免费找搭子，约上同频的人</p></button><button class="c-publish-card" data-c-publish="post"><span>${icon('coffee')}</span><strong>分享经验</strong><p>写一点经历，让别人认识你</p></button></div><div class="c-heading"><h2>我的服务 <span class="muted">${ownServices.length}</span></h2><a href="#me" class="text-button">编辑个人展示 ↗</a></div>${ownServices.length ? `<div class="c-owned-services">${ownServices.map(s => `<article class="c-owned-service"><div><a href="#service/${esc(s.id)}"><h3>${esc(s.title)}</h3></a><p>${priceLabel(s)} · ${s.active === false ? '已暂停' : '已上架，当前设备'}</p></div><button class="secondary" data-c-toggle-service="${esc(s.id)}">${s.active === false ? '上架' : '暂停'}</button></article>`).join('')}</div>` : '<div class="empty">一份展示可以挂出多项服务。比如职业交流、简历建议和周末活动陪伴。</div>'}<div class="c-income-preview"><strong>让一小时，有自己的价格。</strong><p>完成 A$100 的模拟订单：平台佣金 A$15，服务者预计到手 A$85。未扣支付手续费与税费。</p></div>${note}`;
+  }
+  function statusText(status) { return ({ pending: '待确认', accepted: '已确认，待模拟付款', paid: '已模拟付款', completed: '演示已完成', cancelled: '已取消', rejected: '已拒绝' })[status] || status; }
+  function orderWidget(o) {
+    const action = o.status === 'pending' ? ['accept', o.kind === 'request-supply' ? '演示发布者选中我' : o.role === 'provider' ? '接受演示预约' : '演示对方接受'] : o.status === 'accepted' ? ['pay', o.role === 'provider' ? '演示客户付款' : '模拟付款'] : o.status === 'paid' ? ['complete', '演示服务完成'] : null;
+    return `<section class="c-order"><div class="c-kicker">模拟订单 · ${esc(statusText(o.status))}</div><h3>${esc(o.title)}</h3><p>${esc(o.date || '时间待商量')} ${esc(o.time || '')} · ${esc(o.durationLabel || '按约定完成')}</p><div class="price-line"><span>订单金额</span><strong>${money(o.total)}</strong></div><div class="price-line"><span>平台佣金（15%）</span><span>${money(o.platformFee)}</span></div><div class="price-line"><span>服务者预计到手</span><strong>${money(o.providerEarnings)}</strong></div><div class="c-cta-row">${action ? `<button class="primary" data-c-transition="${action[0]}" data-c-order="${esc(o.id)}">${action[1]}</button>` : ''}${['pending', 'accepted', 'paid'].includes(o.status) ? `<button class="text-button" data-c-transition="cancel" data-c-order="${esc(o.id)}">取消演示订单</button>` : ''}${o.status === 'completed' && !o.review && o.role !== 'provider' ? `<button class="secondary" data-c-review="${esc(o.id)}">写一次评价</button>` : ''}${o.status === 'completed' && o.serviceId && o.role !== 'provider' ? `<button class="text-button" data-c-book="${esc(o.serviceId)}">再约一次 ↗</button>` : ''}</div>${o.review ? `<p class="c-review">我的评价 · ${'★'.repeat(o.review.rating)} ${esc(o.review.text)}</p>` : ''}<small>所有支付与收入均为模拟，不扣款、不产生真实余额。</small></section>`;
+  }
+  function messagesPage() {
+    return `<div class="page-heading"><div class="eyebrow">A GOOD CONVERSATION STARTS HERE</div><h1>消息与预约</h1><p>先把时间、内容和费用聊清楚，再确认你的碰面。</p></div><div class="c-thread-list">${threads.length ? threads.map(t => { const o = orders.find(x => x.id === t.orderId), last = t.messages?.at(-1); return `<a class="c-thread-row" href="#thread/${esc(t.id)}"><div class="c-thread-avatar">${esc(t.name.slice(0, 1))}</div><div><h3>${esc(t.name)} ${t.unread ? '<span class="c-unread">新消息</span>' : ''}</h3><p>${esc(last?.text || t.title)}</p><small>${esc(t.title)}</small></div><span>${o ? esc(statusText(o.status)) : '演示聊天'}</span></a>`; }).join('') : empty('还没有消息，预约一项服务或申请一条需求，就可以开始沟通。', 'career', '看看职业交流')}</div><button class="secondary" id="c-demo-thread">试试消息演示</button><div class="c-heading"><h2>最近预约</h2></div><div class="c-order-list">${orders.length ? orders.map(o => `<a class="c-owned-service" href="#thread/${esc(o.threadId)}"><div><h3>${esc(o.title)}</h3><p>${esc(statusText(o.status))} · ${esc(o.role === 'provider' ? '我提供服务' : '我的预约')}</p></div><strong>${money(o.total)}</strong></a>`).join('') : '<p class="muted">提交预约后，可以在这里体验确认、模拟付款、完成和评价。</p>'}</div>${note}`;
+  }
+  function threadPage(t) {
+    if (!t) return back('messages', '返回消息') + empty('这个会话不存在。', 'messages', '返回消息');
+    const o = orders.find(x => x.id === t.orderId);
+    return `${back('messages', '返回消息与预约')}<div class="c-thread-heading"><h1>${esc(t.name)}</h1><p>${esc(t.title)} · 演示会话</p></div>${o ? orderWidget(o) : ''}<div class="c-message-list" aria-label="会话消息">${(t.messages || []).map(m => `<div class="c-bubble ${m.sender === 'self' ? 'c-bubble--mine' : ''}"><small>${m.sender === 'self' ? '我' : `${esc(t.name)} · 演示回复`}</small><p>${esc(m.text)}</p></div>`).join('') || '<p class="muted">发一条消息，开始讨论内容和时间。</p>'}</div><form id="c-message-form" class="c-composer"><label class="sr-only" for="c-message-text">消息内容</label><input id="c-message-text" name="text" placeholder="说说你的需求或约定…" maxlength="500" required autocomplete="off"><button class="primary" type="submit">发送</button></form><div class="c-cta-row"><button class="secondary" data-c-reply="${esc(t.id)}">生成演示回复</button><span class="muted">点击后模拟对方回复，不联系真实用户。</span></div>${note}`;
+  }
+  function createThread({ name, title, order, firstMessage }) {
+    const id = uid(), t = { id, name, title, orderId: order?.id, unread: false, messages: firstMessage ? [{ id: uid(), sender: 'self', text: firstMessage, createdAt: new Date().toISOString() }] : [] };
+    const nextOrder = order ? { ...order, threadId: id } : null;
+    if (!commit({ threads: [t, ...threads], ...(nextOrder ? { orders: [nextOrder, ...orders] } : {}) })) return;
+    closeModal(); navigate(`thread/${id}`); return t;
+  }
+  function book(s, incoming = false) {
+    if (!s || s.active === false) { toast('这个服务目前未开放预约'); return; }
+    const p = provider(s), packages = packageList(s);
+    if (incoming) {
+      const reservation = { packageId: packages[0]?.id, hours: s.minHours || 1 }, quote = serviceQuote(s, reservation);
+      createThread({ name: 'Alex（演示客户）', title: s.title, order: { id: uid(), serviceId: s.id, title: s.title, role: 'provider', date: MelbourneDate(2), time: '14:00', durationLabel: s.pricing === 'hourly' ? `${reservation.hours} 小时` : `${packages[0]?.minutes} 分钟`, status: 'pending', ...quote }, firstMessage: null }); toast('你主动生成了一条演示预约'); return;
+    }
+    showModal(`预约 ${esc(p.name)}`, `<form id="c-book-form"><p>${esc(s.title)}</p>${s.pricing === 'hourly' ? `<label class="field">预约时长<select name="hours" id="c-book-duration">${Array.from({ length: 9 - (s.minHours || 1) }, (_, i) => i + (s.minHours || 1)).map(h => `<option value="${h}">${h} 小时</option>`).join('')}</select></label>` : `<label class="field">选择交流套餐<select name="packageId" id="c-book-duration">${packages.map(p => `<option value="${esc(p.id)}">${esc(p.label || `${p.minutes} 分钟`)} · ${money(p.price)}</option>`).join('')}</select></label>`}<div class="row"><label class="field">日期（墨尔本）<input type="date" name="date" min="${MelbourneDate()}" max="${MelbourneDate(60)}" value="${MelbourneDate(1)}" required></label><label class="field">开始时间<input type="time" name="time" value="14:00" required></label></div><label class="field">我想聊 / 需要什么<textarea name="message" minlength="1" maxlength="300" required placeholder="介绍一下需求，也可以写下想确认的问题。"></textarea></label><div id="c-book-quote" class="price-list"></div><label class="check"><input type="checkbox" name="adult" required><span>我已满 18 岁，理解本次预约为演示，不会扣款。</span></label><p id="c-book-error" class="error" role="alert"></p><button class="primary full" type="submit">提交预约申请</button></form>`);
+    const form = $('#c-book-form'), data = () => { const f = Object.fromEntries(new FormData(form)); return { ...f, hours: Number(f.hours || s.minHours || 1), adult: f.adult === 'on', message: f.message.trim() }; };
+    const paint = () => { try { const q = serviceQuote(s, data()); $('#c-book-quote').innerHTML = `<div class="price-line total"><span>预计合计</span><strong>${money(q.total)}</strong></div><div class="price-line"><span>平台佣金由服务者承担</span><span>15%</span></div><p class="income-note">没有付款。时间与服务内容须双方确认。</p>`; } catch (e) { $('#c-book-quote').textContent = e.message; } };
+    paint(); $('#c-book-duration').onchange = paint;
+    form.onsubmit = e => { e.preventDefault(); const f = data(), error = validateServiceReservation(s, f); if (error) { $('#c-book-error').textContent = error; return; } const quote = serviceQuote(s, f), chosen = packages.find(p => p.id === f.packageId); createThread({ name: p.name, title: s.title, order: { id: uid(), serviceId: s.id, title: s.title, role: 'customer', date: f.date, time: f.time, durationLabel: s.pricing === 'hourly' ? `${f.hours} 小时` : `${chosen?.minutes} 分钟`, status: 'pending', ...quote }, firstMessage: f.message }); toast('模拟预约已保存。可继续体验确认和付款流程。'); };
+  }
+  function publish(type) {
+    if (type === 'activity') { if (openActivity) openActivity(); else navigate('activities'); return; }
+    if (type === 'service') { serviceForm(); return; }
+    if (type === 'post') { postForm(); return; }
+    requestForm();
+  }
+  const domainOptions = selected => Object.entries(domainNames).filter(([k]) => k !== 'activity').map(([k, v]) => `<option value="${k}" ${selected === k ? 'selected' : ''}>${v}</option>`).join('');
+  function serviceForm() {
+    showModal('挂出我的一项服务', `<form id="c-service-form"><div class="row"><label class="field">服务板块<select name="domain" id="c-service-domain">${domainOptions('career')}</select></label><label class="field">我的展示名<input name="providerName" value="${esc(self().name === '我的展示' ? '' : self().name)}" maxlength="24" required placeholder="别人怎么称呼你"></label></div><label class="field">服务标题<input name="title" maxlength="60" required placeholder="例如：30 分钟金融行业 Coffee Chat"></label><label class="field">我的经历 / 一句话介绍<input name="headline" maxlength="100" required placeholder="填写真实经历；本原型不提供经历核验"></label><label class="field">可以提供什么<textarea name="description" minlength="10" maxlength="500" required placeholder="说明交流话题、适合谁，以及这次能获得什么。"></textarea></label><label class="field">话题标签<input name="topics" maxlength="100" placeholder="求职，简历，行业经验（用逗号分隔）"></label><div class="row"><label class="field">区域<select name="area">${options(['CBD', 'Carlton', 'Clayton'])}</select></label><label class="field">形式<select name="mode">${options(['线上', '线下'])}</select></label></div><div id="c-service-price-fields"></div><div id="c-service-quote" class="price-list"></div><label class="check"><input type="checkbox" name="adult" required><span>我已满 18 岁，资料如实填写，理解只保存到当前设备。</span></label><p id="c-service-error" class="error" role="alert"></p><button class="primary full" type="submit">保存并上架这项服务</button></form>`);
+    const form = $('#c-service-form');
+    const paintPrice = () => { const hourly = $('#c-service-domain').value === 'companion'; $('#c-service-price-fields').innerHTML = hourly ? '<div class="row"><label class="field">每小时价格（A$）<input name="rate" type="number" min="10" max="200" step="0.01" value="30" required></label><label class="field">最短预约<select name="minHours"><option value="1">1 小时</option><option value="2">2 小时</option><option value="3">3 小时</option></select></label></div>' : '<div class="row"><label class="field">套餐时长<select name="minutes"><option value="30">30 分钟</option><option value="60">60 分钟</option></select></label><label class="field">本次价格（A$）<input name="price" type="number" min="10" max="1000" step="0.01" value="100" required></label></div>'; paintQuote(); };
+    const paintQuote = () => { const f = Object.fromEntries(new FormData(form)), value = Number(f.price || Number(f.rate) * Number(f.minHours || 1)), q = splitAmount(value); $('#c-service-quote').innerHTML = `<div class="price-line"><span>最短订单金额</span><strong>${money(q.total)}</strong></div><div class="price-line"><span>平台佣金（15%）</span><span>− ${money(q.platformFee)}</span></div><div class="price-line total"><span>预计到手（未扣手续费、税费）</span><strong>${money(q.providerEarnings)}</strong></div>`; };
+    $('#c-service-domain').onchange = paintPrice; form.oninput = paintQuote; paintPrice();
+    form.onsubmit = e => { e.preventDefault(); const f = Object.fromEntries(new FormData(form)), hourly = f.domain === 'companion', s = { id: uid(), owner: 'self', providerId: self().id, providerName: f.providerName.trim(), domain: f.domain, title: f.title.trim(), headline: f.headline.trim(), description: f.description.trim(), topics: f.topics.split(/[,，]/).map(t => t.trim()).filter(Boolean).slice(0, 4), area: f.area, mode: f.mode, pricing: hourly ? 'hourly' : 'package', ...(hourly ? { rate: Number(f.rate), minHours: Number(f.minHours) } : { packages: [{ id: 'standard', minutes: Number(f.minutes), price: Number(f.price), label: `${f.minutes} 分钟交流` }] }), active: true, sample: false };
+      if (s.description.length < 10 || s.title.length < 1 || !s.providerName) { $('#c-service-error').textContent = '请补充完整的服务内容和展示名'; return; }
+      try { serviceQuote(s, { hours: s.minHours, packageId: 'standard' }); } catch (error) { $('#c-service-error').textContent = error.message; return; }
+      if (!commit({ services: [s, ...ownServices] })) return; closeModal(); navigate(`service/${s.id}`); toast('服务已上架到当前设备，可以继续添加其他服务'); };
+  }
+  function requestForm() {
+    showModal('发布一个需求', `<form id="c-request-form"><div class="row"><label class="field">需求板块<select name="domain">${domainOptions('help')}</select></label><label class="field">昵称<input name="name" maxlength="24" value="${esc(self().name === '我的展示' ? '' : self().name)}" required></label></div><label class="field">我需要什么<input name="title" maxlength="60" required placeholder="例如：想找金融从业者聊聊毕业求职"></label><label class="field">具体需求<textarea name="description" minlength="10" maxlength="500" required placeholder="说明你的问题、期望得到的帮助和预计需要的时间。"></textarea></label><div class="row"><label class="field">预算（A$）<input name="budget" type="number" min="10" max="1000" step="0.01" value="100" required></label><label class="field">希望的日期<input type="date" name="date" min="${MelbourneDate()}" max="${MelbourneDate(60)}" value="${MelbourneDate(2)}" required></label></div><div class="row"><label class="field">区域<select name="area">${options(['CBD', 'Carlton', 'Clayton'])}</select></label><label class="field">形式<select name="mode">${options(['线上', '线下'])}</select></label></div><label class="field">预计时长<select name="durationMinutes"><option value="30">30 分钟</option><option value="60">60 分钟</option><option value="120">2 小时</option></select></label><label class="check"><input type="checkbox" name="adult" required><span>我已满 18 岁。内容只保存到当前浏览器，不向真实用户发布。</span></label><p id="c-request-error" class="error" role="alert"></p><button class="primary full" type="submit">发布到我的需求广场</button></form>`);
+    $('#c-request-form').onsubmit = e => { e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)), r = { ...f, title: f.title.trim(), description: f.description.trim(), name: f.name.trim(), budget: Number(f.budget), durationMinutes: Number(f.durationMinutes), adult: f.adult === 'on', id: uid(), owner: 'self', sample: false, closed: false }, error = validateRequest(r); if (error) { $('#c-request-error').textContent = error; return; } if (!commit({ requests: [r, ...ownRequests] })) return; closeModal(); navigate(`request/${r.id}`); toast('需求已保存在当前设备，可以生成演示申请来体验选人'); };
+  }
+  function postForm() {
+    showModal('分享一点经验', '<form id="c-post-form"><label class="field">昵称<input name="name" maxlength="24" required></label><label class="field">标题<input name="title" maxlength="60" required placeholder="一次面试、一个周末、一点生活经验"></label><label class="field">正文<textarea name="text" minlength="10" maxlength="1000" required></textarea></label><p class="c-demo-note">分享仅保存在当前浏览器，不发布给真实用户。</p><button class="primary full">保存我的分享</button></form>');
+    $('#c-post-form').onsubmit = e => { e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)); if (![f.name, f.title, f.text].every(v => v.trim())) return; if (!commit({ posts: [{ ...f, id: uid() }, ...posts] })) return; closeModal(); navigate('discover'); toast('分享已保存到当前设备'); };
+  }
+  function apply(r) {
+    if (!r || r.closed) return;
+    showModal('申请帮忙', `<form id="c-apply-form"><p>${esc(r.title)} · 预算 ${money(r.budget)}</p><label class="field">昵称<input name="name" maxlength="24" value="${esc(self().name === '我的展示' ? '' : self().name)}" required></label><label class="field">我为什么适合<textarea name="reason" minlength="10" maxlength="500" required placeholder="简要说明相关经验、能提供什么，以及哪些时间方便。"></textarea></label><label class="check"><input type="checkbox" required><span>我已满 18 岁，理解这是演示申请。</span></label><button class="primary full">提交申请</button></form>`);
+    $('#c-apply-form').onsubmit = e => { e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)); if (applications.some(a => a.requestId === r.id && a.owner === 'self')) { toast('你已提交过申请'); return; } const a = { ...f, id: uid(), requestId: r.id, owner: 'self', sample: false }, orderId = uid(), threadId = uid(), t = { id: threadId, name: `${r.name}（需求示例）`, title: r.title, orderId, messages: [{ id: uid(), sender: 'self', text: f.reason.trim() }] }, order = { id: orderId, threadId, requestId: r.id, title: r.title, role: 'provider', kind: 'request-supply', status: 'pending', date: r.date, durationLabel: `${r.durationMinutes} 分钟，范围待双方确认`, ...splitAmount(r.budget) }; if (!commit({ applications: [a, ...applications], threads: [t, ...threads], orders: [order, ...orders] })) return; closeModal(); navigate(`thread/${threadId}`); toast('申请已保存。可以主动演示发布者选人，不通知真实用户。'); };
+  }
+  function selectApplicant(a) {
+    const r = ownRequests.find(r => r.id === a?.requestId); if (!r || r.closed) return;
+    showModal('确认选人', `<p>选择 <strong>${esc(a.name)}</strong> 处理“${esc(r.title)}”。</p><div class="price-list"><div class="price-line total"><span>本次预算</span><strong>${money(r.budget)}</strong></div></div><p>先在消息里确认服务范围与时长。这个演示不会扣款。</p><button class="primary full" id="c-confirm-applicant">确认选择，开始沟通</button>`);
+    $('#c-confirm-applicant').onclick = () => { const updated = ownRequests.map(x => x.id === r.id ? { ...x, closed: true, selectedApplicant: a.id } : x); const order = { id: uid(), requestId: r.id, title: r.title, role: 'customer', status: 'accepted', ...splitAmount(r.budget), date: r.date, durationLabel: `${r.durationMinutes} 分钟，范围待双方确认` }, threadId = uid(), thread = { id: threadId, name: a.name, title: r.title, orderId: order.id, unread: false, messages: [{ id: uid(), sender: 'self', text: '你好，我选择了你的申请。我们先确认服务内容和时间。' }] }; if (!commit({ requests: updated, orders: [{ ...order, threadId }, ...orders], threads: [thread, ...threads] })) return; closeModal(); navigate(`thread/${threadId}`); };
+  }
+  function review(o) {
+    showModal('记录这次体验', '<form id="c-review-form"><label class="field">评分<select name="rating"><option value="5">5 星 · 很满意</option><option value="4">4 星 · 满意</option><option value="3">3 星 · 一般</option><option value="2">2 星 · 有待改进</option><option value="1">1 星 · 不满意</option></select></label><label class="field">评价<textarea name="text" minlength="1" maxlength="300" required placeholder="这次体验怎么样？"></textarea></label><p class="c-demo-note">演示评价仅保存在当前设备，不计入真实信用。</p><button class="primary full">保存评价</button></form>');
+    $('#c-review-form').onsubmit = e => { e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)); if (!f.text.trim()) return; if (!commit({ orders: orders.map(x => x.id === o.id ? { ...x, review: { rating: Number(f.rating), text: f.text.trim() } } : x) })) return; closeModal(); refresh(); toast('评价已保存'); };
+  }
+  function bind(route) {
+    document.querySelectorAll('[data-c-filter]').forEach(b => b.onclick = () => { filter.domain = b.dataset.cFilter; refresh(); });
+    $('#c-search')?.addEventListener('input', e => { filter.query = e.target.value; const focus = e.target.selectionStart; refresh(); $('#c-search')?.focus(); $('#c-search')?.setSelectionRange(focus, focus); });
+    document.querySelectorAll('[data-c-request-tab]').forEach(b => b.onclick = () => { requestTab = b.dataset.cRequestTab; refresh(); });
+    document.querySelectorAll('[data-c-publish]').forEach(b => b.onclick = () => publish(b.dataset.cPublish));
+    document.querySelectorAll('[data-c-book]').forEach(b => b.onclick = () => book(findService(b.dataset.cBook)));
+    document.querySelectorAll('[data-c-inquiry]').forEach(b => b.onclick = () => book(findService(b.dataset.cInquiry), true));
+    document.querySelectorAll('[data-c-toggle-service]').forEach(b => b.onclick = () => { if (commit({ services: ownServices.map(s => s.id === b.dataset.cToggleService ? { ...s, active: !s.active } : s) })) { refresh(); toast('服务展示状态已更新'); } });
+    document.querySelectorAll('[data-c-apply]').forEach(b => b.onclick = () => apply(allRequests().find(r => r.id === b.dataset.cApply)));
+    document.querySelectorAll('[data-c-generate-apply]').forEach(b => b.onclick = () => { const r = ownRequests.find(x => x.id === b.dataset.cGenerateApply); if (!r || r.closed) return; const a = { id: uid(), requestId: r.id, name: ['Jamie', 'Alex', 'Chris'][applications.filter(x => x.requestId === r.id).length % 3] + '（演示申请）', reason: '我有相关经历，可以先了解你的具体需求，再约定时间和服务范围。（由你主动生成的示例）', sample: true }; if (commit({ applications: [...applications, a] })) { refresh(); toast('演示申请已生成，不代表真实用户'); } });
+    document.querySelectorAll('[data-c-select-applicant]').forEach(b => b.onclick = () => selectApplicant(applications.find(a => a.id === b.dataset.cSelectApplicant)));
+    document.querySelectorAll('[data-c-transition]').forEach(b => b.onclick = () => { const o = orders.find(x => x.id === b.dataset.cOrder); if (!o) return; try { const next = transitionDemoOrder(o, b.dataset.cTransition); if (commit({ orders: orders.map(x => x.id === o.id ? next : x) })) { refresh(); toast('模拟状态已更新，不产生真实付款'); } } catch (error) { toast(error.message); } });
+    document.querySelectorAll('[data-c-review]').forEach(b => b.onclick = () => { const o = orders.find(x => x.id === b.dataset.cReview); if (o?.status === 'completed' && !o.review) review(o); });
+    $('#c-demo-thread')?.addEventListener('click', () => createThread({ name: 'Jamie（演示伙伴）', title: '试试站内沟通', firstMessage: null }));
+    document.querySelectorAll('[data-c-reply]').forEach(b => b.onclick = () => { if (commit({ threads: threads.map(t => t.id === b.dataset.cReply ? { ...t, unread: true, messages: [...(t.messages || []), { id: uid(), sender: 'other', text: '收到啦！我们可以先把具体内容、时间和费用确认好。（你主动生成的演示回复）', createdAt: new Date().toISOString() }] } : t) })) { refresh(); toast('演示回复已生成'); } });
+    if (route.startsWith('thread/')) {
+      const id = route.slice(7), t = threads.find(x => x.id === id);
+      if (t?.unread) commit({ threads: threads.map(x => x.id === id ? { ...x, unread: false } : x) });
+      $('#c-message-form')?.addEventListener('submit', e => { e.preventDefault(); const text = new FormData(e.target).get('text').trim(); if (!text || text.length > 500) return; if (commit({ threads: threads.map(x => x.id === id ? { ...x, messages: [...(x.messages || []), { id: uid(), sender: 'self', text, createdAt: new Date().toISOString() }] } : x) })) { refresh(); $('#c-message-text')?.focus(); } });
+    }
+  }
+  function render(route) {
+    if (route === 'discover') return home();
+    if (route === 'career') return home(true);
+    if (route === 'requests') return requestsPage();
+    if (route === 'publish') return publishPage();
+    if (route === 'messages') return messagesPage();
+    if (route.startsWith('service/')) return serviceDetail(findService(route.slice(8)));
+    if (route.startsWith('request/')) return requestDetail(allRequests().find(r => r.id === route.slice(8)));
+    if (route.startsWith('thread/')) return threadPage(threads.find(t => t.id === route.slice(7)));
+    return null;
+  }
+  function getIncomeSummary() {
+    const completed = orders.filter(o => o.role === 'provider' && o.status === 'completed');
+    const sum = key => completed.reduce((total, o) => total + Math.round(Number(o[key] || 0) * 100), 0) / 100;
+    return { completedCount: completed.length, total: sum('total'), platformFee: sum('platformFee'), providerEarnings: sum('providerEarnings') };
+  }
+  function renderMyServices() {
+    const income = getIncomeSummary();
+    return `<section class="c-my-services"><div class="c-heading"><div><div class="eyebrow">MY TIME & EXPERIENCE</div><h2>我的服务与需求</h2></div><a href="#publish" class="primary">添加服务 ${icon('plus')}</a></div><div class="c-my-stats"><a href="#publish"><strong>${ownServices.length}</strong><span>我提供的服务</span></a><a href="#requests"><strong>${ownRequests.length}</strong><span>我发布的需求</span></a><a href="#messages"><strong>${orders.length}</strong><span>社区预约</span></a></div>${ownServices.length ? `<div class="c-owned-services">${ownServices.map(s => `<article class="c-owned-service"><a href="#service/${esc(s.id)}"><h3>${esc(s.title)}</h3><p>${priceLabel(s)} · ${s.active === false ? '已暂停' : '当前设备已上架'}</p></a><button class="secondary" data-c-toggle-service="${esc(s.id)}">${s.active === false ? '上架' : '暂停'}</button></article>`).join('')}</div>` : '<p class="muted">一份个人展示，可以提供多项服务。挂出职业交流、生活求助或活动陪伴。</p>'}<div class="c-income-preview"><span>社区服务模拟到手</span><strong>${money(income.providerEarnings)}</strong><p>${income.completedCount} 个已完成的演示接单，扣除 15% 模拟佣金。客户支出不计入收入，无真实余额。</p></div><a href="#messages" class="text-button">查看社区消息与预约 ↗</a></section>`;
+  }
+  return { render, bind, renderMyServices, bindMyServices: () => bind('me'), getIncomeSummary, ownServices: () => [...ownServices], stats: () => ({ services: ownServices.length, requests: ownRequests.length, orders: orders.length, unread: threads.filter(t => t.unread).length, completedIncome: getIncomeSummary().providerEarnings }) };
+}
+
+return { createCommunity };
+})();
+__demoModules[7] = (() => {
+const { filterActivities, validateActivity } = __demoModules[0];
+const { bookingBreakdown, filterProfiles, validateProfile, validateReservation, MelbourneDate, PLATFORM_FEE_BPS } = __demoModules[1];
+const { sampleProfiles, sampleActivities, weekdays, services, areas } = __demoModules[2];
+const { esc, money, options, icon, portrait } = __demoModules[3];
+const { createCommunity } = __demoModules[6];
+
+
+
+
+
+const $ = selector => document.querySelector(selector);
+const read = key => { try { const value = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(value) ? value : []; } catch { return []; } };
+let ownActivities = read('mates.activities');
+let activityBookings = read('mates.bookings');
+let myProfiles = read('mates.profiles');
+let orders = read('mates.orders');
+let favorites = read('mates.favorites');
+let incoming = read('mates.incoming');
+let filters = { query: '', service: '全部', area: '全部区域', gender: '不限', maxRate: 200, sort: '推荐' };
+let activityFilter = { category: '全部', area: '全部区域', mode: '全部方式', query: '' };
+let favoritesOnly = false;
+let orderTab = 'outgoing';
+let editing = false;
+let installPrompt;
+const feePercent = PLATFORM_FEE_BPS / 100;
+const profileList = () => [...myProfiles, ...sampleProfiles];
+const getProfile = id => profileList().find(p => p.id === id);
+const allActivities = () => [...ownActivities, ...sampleActivities];
+const makeId = () => globalThis.crypto?.randomUUID?.() || `demo-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+const save = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch { toast('保存失败：浏览器存储空间不足，请减少照片或检查设置'); return false; } };
+const isOwn = p => myProfiles.some(x => x.id === p.id);
+function toast(message) {
+  $('.toast')?.remove();
+  const node = document.createElement('div'); node.className = 'toast'; node.setAttribute('role', 'status'); node.textContent = message;
+  document.body.append(node); setTimeout(() => node.remove(), 3500);
+}
+function route() { try { return decodeURIComponent(location.hash.slice(1) || 'discover'); } catch { return 'discover'; } }
+function navigate(target) { if (route() === target) render(); else location.hash = target; }
+let openEditorOnRoute = false;
+function openProfileEditor() { if (route() === 'me') { editing = true; render(); } else { openEditorOnRoute = true; navigate('me'); } }
+window.addEventListener('hashchange', () => { closeModal(); editing = route() === 'me' && openEditorOnRoute; openEditorOnRoute = false; render(); window.scrollTo({ top: 0, behavior: 'instant' }); });
+const community = createCommunity({ navigate, toast, showModal, closeModal, profileList, getProfile, portrait, esc, money, icon, options, renderRoot: render, openActivity: publishActivity });
+const navItems = [['discover', 'discover', '发现'], ['requests', 'requests', '需求'], ['publish', 'plus', '发布'], ['messages', 'messages', '消息'], ['me', 'me', '我的']];
+function nav(active, mobile = false) {
+  return `<nav class="${mobile ? 'bottom-nav' : 'desktop-nav'}" aria-label="${mobile ? '手机' : '主'}导航">${navItems.map(([key, glyph, title]) => `<a class="nav-item ${active === key ? 'is-active' : ''}" href="#${key}" ${active === key ? 'aria-current="page"' : ''}><span class="nav-icon">${icon(glyph)}</span><span>${title}</span></a>`).join('')}</nav>`;
+}
+function render() {
+  const current = route();
+  const active = current.startsWith('request/') ? 'requests' : current.startsWith('thread/') ? 'messages' : ['publish', 'requests', 'messages', 'me'].includes(current) ? current : current === 'orders' ? 'me' : 'discover';
+  let content = community.render(current);
+  if (content !== null) { /* Community routes render through the shared mobile shell. */ }
+  else if (current.startsWith('profile/')) content = profilePage(current.split('/')[1]);
+  else if (current === 'activities') content = activitiesPage();
+  else if (current === 'orders') content = ordersPage();
+  else if (current === 'me') content = mePage();
+  else if (current === 'guide') content = guidePage();
+  else if (current === 'verification') content = verificationPage();
+  else if (current === 'companions') content = discoverPage();
+  else content = '<div class="empty">找不到这个页面。<a href="#discover">返回发现</a></div>';
+  $('#app').innerHTML = `<header class="app-header"><a href="#discover" class="brand"><span class="brand-mark">↗</span>碰个面<span class="header-location">${icon('pin')} 墨尔本</span></a>${nav(active)}<div class="header-actions"><a class="secondary" href="#publish">${icon('plus')} 发布</a><a class="icon-button" href="#guide" aria-label="平台指南">?</a></div></header><main class="app-main">${content}<footer class="app-footer"><span>碰个面 · 让需求找到合适的人。</span><a href="#guide">规则与费用说明</a><span>墨尔本华人社区 · 本机交互演示</span></footer></main>${nav(active, true)}`;
+  bindCommon();
+  community.bind(current);
+  if (current === 'companions') bindDiscovery();
+  if (current.startsWith('profile/')) bindProfile(getProfile(current.split('/')[1]));
+  if (current === 'activities') bindActivities();
+  if (current === 'orders') bindOrders();
+  if (current === 'verification') bindVerification();
+  if (current === 'me') { bindMe(); community.bindMyServices?.(); }
+}
+function bindCommon() {
+  document.querySelectorAll('[data-action="listing"]').forEach(button => button.onclick = openProfileEditor);
+  document.querySelectorAll('[data-favorite]').forEach(button => button.onclick = () => {
+    const id = button.dataset.favorite;
+    const next = favorites.includes(id) ? favorites.filter(x => x !== id) : [...favorites, id];
+    if (!save('mates.favorites', next)) return; favorites = next;
+    button.classList.toggle('selected', favorites.includes(id)); button.setAttribute('aria-pressed', String(favorites.includes(id)));
+    if (favoritesOnly && $('#profile-cards')) renderProfileCards();
+  });
+  document.querySelectorAll('[data-view]').forEach(button => button.onclick = () => navigate(`profile/${button.dataset.view}`));
+  $('#install-app')?.addEventListener('click', installApp);
+}
+function discoverPage() {
+  return `<section class="hero"><div class="hero-copy"><div class="eyebrow">MEET SOMEONE · MAKE A DAY</div><h1>心动的日常，<br>找个人<span>一起过。</span></h1><p class="muted">认识墨尔本的同频新朋友。<br>从吃饭、逛街、看展开始，把时间留给喜欢的生活。</p><div class="hero-stats"><span>自己定价</span><span>按小时预约</span><span>先沟通，再见面</span></div><button class="primary" id="browse-people">看看谁能陪我 ${icon('arrow')}</button><button class="text-button" data-action="listing">我也想展示自己 ↗</button></div><div class="hero-visual" aria-label="个人展示插画"><div class="hero-portrait">${portrait(sampleProfiles[1])}<div class="hero-caption">小鹿 <span>${money(28)} / 小时</span></div></div><div class="hero-portrait">${portrait(sampleProfiles[2])}<div class="hero-caption">Lucas <span>${money(30)} / 小时</span></div></div><div class="hero-pill">✦ 一杯咖啡，开始一段相遇</div></div></section><div class="prototype-note">当前是 App 原型：示例人物使用插画，预约不扣款；你的展示与照片仅保存在当前设备。</div><section id="people"><div class="section-heading"><div><div class="eyebrow">PEOPLE, NOT PLANS</div><h2>先找到让你想见的人</h2></div><span class="muted">墨尔本 · 按兴趣认识</span></div><div class="search-box">${icon('search')}<input type="search" id="profile-search" value="${esc(filters.query)}" placeholder="搜索昵称、兴趣或自我介绍" aria-label="搜索人物"></div><div class="filter-strip">${['全部', ...services].map(s => `<button class="filter-chip ${filters.service === s ? 'selected' : ''}" data-service="${s}">${s}</button>`).join('')}<button class="filter-chip ${favoritesOnly ? 'selected' : ''}" id="favorites-only">${icon('heart')} 收藏</button></div><div class="filter-controls"><select id="profile-area" aria-label="地区">${options(['全部区域', ...areas], filters.area)}</select><select id="profile-gender" aria-label="性别">${options(['不限', '女生', '男生', '其他'], filters.gender)}</select><select id="profile-price" aria-label="最高时薪">${[200, 20, 30, 50].map(v => `<option value="${v}" ${filters.maxRate === v ? 'selected' : ''}>${v === 200 ? '不限价格' : `≤ A$${v} / 小时`}</option>`).join('')}</select><select id="profile-sort" aria-label="排序">${options(['推荐', '价格从低到高', '价格从高到低'], filters.sort)}</select></div><div class="profile-grid" id="profile-cards">${profileCards()}</div></section><div class="dashboard-banner"><div><div class="eyebrow">YOUR TIME, YOUR PRICE</div><h2>把你的个性，变成展示面。</h2><p>上传照片，写下兴趣和服务内容，设定你自己的每小时价格。</p></div><button class="primary" data-action="listing">建立我的展示 ${icon('arrow')}</button></div><div class="install-banner"><div>${icon('discover')} <strong>像 App 一样，放在手机主屏幕。</strong><p class="muted">支持添加到主屏幕。当前版本还不是 App Store / Google Play 安装包。</p></div><button class="secondary" id="install-app">添加到主屏幕</button></div>`;
+}
+function profileCards() {
+  const items = filterProfiles(profileList(), filters).filter(p => !favoritesOnly || favorites.includes(p.id));
+  return items.length ? items.map(p => `<article class="profile-card"><div class="profile-cover"><a class="profile-link" href="#profile/${esc(p.id)}" aria-label="查看${esc(p.name)}的展示">${portrait(p)}</a><span class="sample-label">${p.sample ? '示例插画' : '我的展示'}</span><button class="favorite ${favorites.includes(p.id) ? 'selected' : ''}" data-favorite="${esc(p.id)}" aria-label="收藏${esc(p.name)}" aria-pressed="${favorites.includes(p.id)}">${icon('heart')}</button><div class="profile-overlay"><span>${p.minHours} 小时起约</span></div></div><div class="profile-body"><div class="profile-name"><a href="#profile/${esc(p.id)}"><h3>${esc(p.name)}</h3></a><span>${p.age} · ${esc(p.gender)}</span></div><div class="profile-meta">${icon('pin')} ${esc(p.area)} · 墨尔本</div><div class="interest-tags">${p.services.slice(0, 2).map(s => `<span class="tag">${esc(s)}</span>`).join('')}</div><p class="profile-bio">${esc(p.tagline || p.bio)}</p><div class="profile-footer"><div class="hourly-price">${money(p.rate)}<small>/ 小时</small></div><button class="primary" data-view="${esc(p.id)}">看主页 ${icon('arrow')}</button></div></div></article>`).join('') : '<div class="empty">没有找到符合条件的人。换个筛选，或建立你自己的展示。</div>';
+}
+function renderProfileCards() { $('#profile-cards').innerHTML = profileCards(); bindCommon(); }
+function bindDiscovery() {
+  $('#browse-people').onclick = () => $('#people').scrollIntoView({ behavior: 'smooth' });
+  $('#profile-search').oninput = e => { filters.query = e.target.value; renderProfileCards(); };
+  document.querySelectorAll('[data-service]').forEach(b => b.onclick = () => { filters.service = b.dataset.service; render(); });
+  $('#favorites-only').onclick = () => { favoritesOnly = !favoritesOnly; render(); };
+  for (const [id, key, numeric] of [['profile-area', 'area'], ['profile-gender', 'gender'], ['profile-price', 'maxRate', true], ['profile-sort', 'sort']]) {
+    $(`#${id}`).onchange = e => { filters[key] = numeric ? Number(e.target.value) : e.target.value; renderProfileCards(); };
+  }
+}
+function profilePage(id) {
+  const p = getProfile(id);
+  if (!p) return '<div class="empty">这个展示暂时不存在。<a href="#discover">返回发现</a></div>';
+  const photos = Math.max(1, p.photos?.length || 0);
+  return `<a href="#companions" class="back-button">${icon('back')} 返回陪伴</a><div class="detail-layout"><div class="detail-gallery"><div class="profile-cover">${portrait(p)}<span class="sample-label">${p.sample ? '示例人物 · 插画展示' : '我的展示 · 仅当前设备'}</span></div>${photos > 1 ? `<div class="photo-preview">${p.photos.slice(1).map((_, index) => portrait(p, index + 1)).join('')}</div>` : ''}</div><section class="detail-panel"><div class="eyebrow">LET’S SPEND A LITTLE TIME TOGETHER</div><div class="detail-title"><h1>${esc(p.name)}<small>${p.age} · ${esc(p.gender)}</small></h1><button class="favorite ${favorites.includes(p.id) ? 'selected' : ''}" data-favorite="${esc(p.id)}" aria-label="收藏${esc(p.name)}" aria-pressed="${favorites.includes(p.id)}">${icon('heart')}</button></div><div class="detail-stats"><span>${icon('pin')} ${esc(p.area)} · 墨尔本</span><span>${esc(p.languages || '普通话')}</span></div><p class="profile-bio">${esc(p.tagline || '期待与你，一起度过好时光。')}</p><div class="detail-block"><h3>认识一下我</h3><p>${esc(p.bio)}</p></div><div class="detail-block"><h3>可以陪你做什么</h3><div class="interest-tags">${p.services.map(s => `<span class="tag">${esc(s)}</span>`).join('')}</div></div><div class="detail-block"><h3>我的可预约日</h3><div class="slot-tags">${p.available.map(d => `<span class="tag">${esc(d)}</span>`).join('')}</div><p class="muted">具体时间以双方确认结果为准，页面不是实时空闲状态。</p></div><div class="guideline"><strong>提前说清楚，见面更自在。</strong><p>活动在公共场所进行。餐饮、门票和交通各自支付或提前约定；陪伴服务不承诺恋爱关系。</p></div><div class="booking-bar"><div class="hourly-price">${money(p.rate)}<small>/ 小时 · ${p.minHours} 小时起</small></div><button class="primary" id="book-profile" ${!isOwn(p) && !p.active ? 'disabled' : ''}>${isOwn(p) ? '编辑我的展示' : p.active ? '预约陪伴' : '暂未上架'} ${icon('arrow')}</button></div>${isOwn(p) ? '' : '<p class="prototype-note">仅模拟申请，不联系真实人物、不扣款。</p>'}</section></div>`;
+}
+function bindProfile(p) {
+  if (!p) return;
+  $('#book-profile').onclick = () => { if (isOwn(p)) { openProfileEditor(); } else bookProfile(p); };
+}
+let modalFocus;
+function showModal(title, body) {
+  closeModal(); modalFocus = document.activeElement;
+  const wrapper = document.createElement('div'); wrapper.className = 'dialog-backdrop';
+  wrapper.innerHTML = `<section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="dialog-head"><h2 id="dialog-title">${title}</h2><button class="close" aria-label="关闭">×</button></div>${body}</section>`;
+  document.body.append(wrapper);
+  wrapper.querySelector('.close').onclick = closeModal;
+  wrapper.onclick = e => { if (e.target === wrapper) closeModal(); };
+  wrapper.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+    if (e.key !== 'Tab') return;
+    const nodes = [...wrapper.querySelectorAll('button, input, select, textarea, a[href]')].filter(n => !n.disabled && !n.closest('[hidden]'));
+    if (e.shiftKey && document.activeElement === nodes[0]) { e.preventDefault(); nodes.at(-1).focus(); }
+    else if (!e.shiftKey && document.activeElement === nodes.at(-1)) { e.preventDefault(); nodes[0].focus(); }
+  });
+  wrapper.querySelector('.close').focus();
+}
+function closeModal() { $('.dialog-backdrop')?.remove(); modalFocus?.isConnected && modalFocus.focus(); }
+function nextAvailableDate(p) {
+  for (let i = 1; i <= 7; i++) { const date = MelbourneDate(i); const day = new Date(`${date}T12:00:00Z`).getUTCDay(); if (p.available.includes(weekdays[(day + 6) % 7])) return date; }
+  return MelbourneDate(1);
+}
+function bookProfile(p) {
+  if (orders.some(o => o.profileId === p.id && !['已取消', '已完成', '已拒绝'].includes(o.status))) { toast('你已预约过这个人，请先在预约页查看或取消'); return; }
+  showModal(`预约 ${esc(p.name)}`, `<p class="muted">${money(p.rate)} / 小时 · ${p.minHours} 小时起约</p><form id="profile-booking"><label class="field">想一起做什么<select name="service">${options(p.services)}</select></label><div class="row"><label class="field">日期（墨尔本）<input type="date" name="date" min="${MelbourneDate()}" max="${MelbourneDate(60)}" value="${nextAvailableDate(p)}" required></label><label class="field">开始时间<input type="time" name="time" value="14:00" min="09:00" max="22:00" required></label></div><label class="field">预约时长<select name="hours" id="booking-hours">${Array.from({ length: 9 - p.minHours }, (_, n) => n + p.minHours).map(h => `<option value="${h}">${h} 小时</option>`).join('')}</select></label><label class="field">我的留言<textarea name="message" minlength="1" maxlength="300" placeholder="想在哪里见面？介绍一下你的计划。" required></textarea></label><div class="price-list"><div class="price-line"><span>陪伴费</span><span id="booking-math"></span></div><div class="price-line"><span>餐饮、门票、交通</span><span>另行约定</span></div><div class="price-line total"><strong>预计合计</strong><strong id="booking-total"></strong></div></div><p class="income-note">平台佣金由接单方承担，不额外叠加到上述价格。这里是模拟申请，没有付款。</p><label class="check"><input type="checkbox" required><span>我已满 18 岁，同意见面前确认活动与费用，尊重对方意愿。</span></label><p class="error" id="booking-error" role="alert"></p><button class="primary full" type="submit">提交预约申请</button></form>`);
+  const update = () => { const hours = Number($('#booking-hours').value); const breakdown = bookingBreakdown(p.rate, hours, p.minHours); $('#booking-math').textContent = `${money(p.rate)} × ${hours} 小时`; $('#booking-total').textContent = money(breakdown.total); };
+  update(); $('#booking-hours').onchange = update;
+  $('#profile-booking').onsubmit = e => {
+    e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)); f.hours = Number(f.hours); f.message = f.message.trim();
+    const error = validateReservation(p, f); if (error) { $('#booking-error').textContent = error; return; }
+    const o = { ...f, id: makeId(), profileId: p.id, name: p.name, area: p.area, rate: p.rate, status: '待对方确认', ...bookingBreakdown(p.rate, f.hours, p.minHours), createdAt: new Date().toISOString(), sample: true };
+    const next = [o, ...orders]; if (!save('mates.orders', next)) return; orders = next; orderTab = 'outgoing'; closeModal(); navigate('orders'); toast('模拟申请已保存，不会扣款或通知真实人物');
+  };
+}
+function activitiesPage() {
+  return `<div class="page-heading"><div class="eyebrow">DO SOMETHING TOGETHER</div><h1>找搭子，一起玩。</h1><p class="muted">免费结伴也有自己的位置，活动开销提前说清楚。</p></div><div class="section-heading"><h2>最近的计划</h2><button class="primary" id="publish-activity">${icon('plus')} 发布活动</button></div><div class="filter-strip">${['全部', '美食', '娱乐', '运动', '艺术', '闲逛'].map(c => `<button class="filter-chip ${c === activityFilter.category ? 'selected' : ''}" data-category="${c}">${c}</button>`).join('')}</div><div class="activity-grid" id="activity-cards">${activityCards()}</div>`;
+}
+function activityCards() {
+  const items = filterActivities(allActivities(), activityFilter);
+  return items.length ? items.map(a => `<article class="activity-card"><div class="activity-emoji">${esc(a.emoji || '☕')}</div><div><span class="tag">${esc(a.mode || '免费搭子')}${a.id.startsWith('s') ? ' · 示例' : ' · 我的发布'}</span><h3>${esc(a.title)}</h3><p class="muted">${esc(a.description)}</p><div class="activity-meta">${icon('pin')} ${esc(a.area)} · ${esc(a.date)} ${esc(a.time)}</div><p class="muted">${esc(a.cost)}</p><button class="secondary" data-activity="${esc(a.id)}">${a.id.startsWith('u') ? '管理活动' : '申请同行'} ${icon('arrow')}</button></div></article>`).join('') : '<div class="empty">暂时没有该类型的活动，发起你的第一个计划吧。</div>';
+}
+function bindActivities() {
+  $('#publish-activity').onclick = publishActivity;
+  document.querySelectorAll('[data-category]').forEach(b => b.onclick = () => { activityFilter.category = b.dataset.category; render(); });
+  document.querySelectorAll('[data-activity]').forEach(b => b.onclick = () => activityDetails(allActivities().find(a => a.id === b.dataset.activity)));
+}
+function activityDetails(a) {
+  if (a.id.startsWith('u')) { confirmDeleteActivity(a.id); return; }
+  if (activityBookings.some(b => b.activityId === a.id && b.status !== '已取消')) { toast('已申请过此活动，请在预约页查看'); return; }
+  showModal(esc(a.title), `<p class="muted">${esc(a.date)} ${esc(a.time)} · ${esc(a.area)}<br>${esc(a.cost)}</p><form id="activity-join"><label class="field">给发起人的留言<textarea name="message" maxlength="300" required placeholder="简单介绍一下自己"></textarea></label><label class="check"><input type="checkbox" required><span>我已满 18 岁，尊重他人边界，并在公共场所见面。</span></label><p class="prototype-note">模拟申请，仅保存到当前设备，不通知真实人物。</p><button class="primary full" type="submit">提交同行申请</button></form>`);
+  $('#activity-join').onsubmit = e => { e.preventDefault(); const message = String(new FormData(e.target).get('message')).trim(); if (!message) { toast('请填写留言'); return; } const booking = { id: makeId(), activityId: a.id, title: a.title, name: a.name, date: a.date, time: a.time, area: a.area, hours: 1, total: a.rate || 0, message, status: '待对方确认（模拟）' }; const next = [booking, ...activityBookings]; if (!save('mates.bookings', next)) return; activityBookings = next; orderTab = 'outgoing'; closeModal(); navigate('orders'); toast('同行申请已保存'); };
+}
+function publishActivity() {
+  showModal('发起一个免费搭子活动', `<form id="activity-publish"><label class="field">昵称<input name="name" maxlength="24" required></label><label class="field">标题<input name="title" maxlength="40" required placeholder="周末找人一起喝咖啡"></label><div class="row"><label class="field">类型<select name="category">${options(['美食', '娱乐', '运动', '艺术', '闲逛'])}</select></label><label class="field">区域<select name="area">${options(areas)}</select></label></div><div class="row"><label class="field">日期<input type="date" name="date" min="${MelbourneDate()}" value="${MelbourneDate(1)}" required></label><label class="field">时间<input type="time" name="time" value="14:00" required></label></div><label class="field">活动说明<textarea name="description" maxlength="500" required></textarea></label><label class="field">费用分担<input name="cost" maxlength="150" required placeholder="餐费 AA，每人预计 A$30"></label><label class="check"><input type="checkbox" required><span>我已满 18 岁，同意在公共场所见面。</span></label><p class="error" id="activity-error" role="alert"></p><p class="prototype-note">仅保存到本机，付费服务请通过个人展示上架。</p><button class="primary full" type="submit">发布活动</button></form>`);
+  $('#activity-publish').onsubmit = e => { e.preventDefault(); const a = { ...Object.fromEntries(new FormData(e.target)), id: 'u' + makeId(), mode: '免费搭子', rate: 0, emoji: '☕' }; const error = validateActivity(a); if (error) { $('#activity-error').textContent = error; return; } const next = [a, ...ownActivities]; if (!save('mates.activities', next)) return; ownActivities = next; closeModal(); render(); toast('活动已发布到当前设备'); };
+}
+function ordersPage() {
+  const list = orderTab === 'incoming' ? incoming : orders;
+  return `<div class="page-heading"><div class="eyebrow">A LITTLE PLAN TO LOOK FORWARD TO</div><h1>我的预约</h1><p class="muted">申请、确认、见面，把每一步说清楚。当前订单均为模拟。</p></div><div class="filter-strip"><button class="filter-chip ${orderTab === 'outgoing' ? 'selected' : ''}" data-order-tab="outgoing">我预约的</button><button class="filter-chip ${orderTab === 'incoming' ? 'selected' : ''}" data-order-tab="incoming">我接到的 · 演示</button></div>${list.length ? list.map(o => orderCard(o, orderTab === 'incoming')).join('') : `<div class="empty">${orderTab === 'incoming' ? '还没有接单演示。先在“我的”建立展示，再生成演示询价。' : '还没有预约。从一个想见的人开始吧。'}</div>`}${orderTab === 'outgoing' ? `<h2>搭子活动申请</h2>${activityBookings.length ? activityBookings.map(b => `<article class="order-card"><div class="status">${esc(b.status)}</div><h3>${esc(b.title)}</h3><p class="muted">${esc(b.name)} · ${esc(b.area)} · ${esc(b.date)} ${esc(b.time)}</p><p class="muted">留言：${esc(b.message)}</p>${b.total ? `<p>原有活动预计费用 ${money(b.total)} · 无真实付款</p>` : '<span class="tag">免费搭子 · 开销另计</span>'}${b.status !== '已取消' ? `<button class="secondary" data-cancel-activity="${esc(b.id)}">取消活动申请</button>` : ''}</article>`).join('') : '<p class="muted">还没有活动申请。</p>'}` : '<p class="income-note">演示询价由你主动生成，不代表真实客户或真实收入。</p>'}`;
+}
+function orderCard(o, provider) {
+  const actions = provider ? (o.status === '待我确认' ? `<button class="primary" data-transition="accept" data-order="${o.id}">接受预约</button><button class="secondary" data-transition="decline" data-order="${o.id}">拒绝预约</button>` : o.status === '已接受，待付款' ? `<button class="secondary" data-transition="paid" data-order="${o.id}">演示客户付款</button>` : o.status === '已预约' ? `<button class="primary" data-transition="complete" data-order="${o.id}">演示完成活动</button>` : '') : (o.status === '待对方确认' ? `<button class="secondary" data-cancel-order="${o.id}">取消预约</button>` : '');
+  return `<article class="order-card"><div class="status">${esc(o.status)} · 模拟订单</div><h3>${provider ? '客户：' : '预约：'}${esc(o.name)}</h3><div class="order-summary"><span>${esc(o.service)}</span><span>${esc(o.area)} · ${esc(o.date)} ${esc(o.time)}</span><span>${o.hours} 小时 · ${money(o.rate)} / 小时</span></div><p class="muted">${esc(o.message)}</p><div class="price-list"><div class="price-line"><strong>订单金额</strong><strong>${money(o.total)}</strong></div>${provider ? `<div class="price-line"><span>平台佣金（${feePercent}% 试算）</span><span>− ${money(o.platformFee)}</span></div><div class="price-line total"><strong>${o.status === '已完成' ? '模拟到手金额' : '预计到手'}</strong><strong>${money(o.providerEarnings)}</strong></div>` : ''}</div><div class="order-actions">${actions}</div></article>`;
+}
+function bindOrders() {
+  document.querySelectorAll('[data-order-tab]').forEach(b => b.onclick = () => { orderTab = b.dataset.orderTab; render(); });
+  document.querySelectorAll('[data-cancel-order]').forEach(b => b.onclick = () => confirmAction('取消这次预约？', '原型没有实际扣款或退款，取消后可以重新申请。', () => { const next = orders.map(o => o.id === b.dataset.cancelOrder && o.status === '待对方确认' ? { ...o, status: '已取消' } : o); if (save('mates.orders', next)) { orders = next; render(); } }));
+  document.querySelectorAll('[data-cancel-activity]').forEach(b => b.onclick = () => confirmAction('取消同行申请？', '取消后可以重新申请。', () => { const next = activityBookings.map(o => o.id === b.dataset.cancelActivity ? { ...o, status: '已取消' } : o); if (save('mates.bookings', next)) { activityBookings = next; render(); } }));
+  document.querySelectorAll('[data-transition]').forEach(b => b.onclick = () => {
+    const map = { accept: ['待我确认', '已接受，待付款'], decline: ['待我确认', '已拒绝'], paid: ['已接受，待付款', '已预约'], complete: ['已预约', '已完成'] };
+    const [from, to] = map[b.dataset.transition];
+    const next = incoming.map(o => o.id === b.dataset.order && o.status === from ? { ...o, status: to } : o);
+    if (!save('mates.incoming', next)) return; incoming = next; render(); toast(to === '已完成' ? '演示完成：收入试算已更新，无实际资金转账' : `演示订单：${to}`);
+  });
+}
+function confirmAction(title, body, action) { showModal(title, `<p class="muted">${body}</p><button class="primary full" id="confirm-action">确认</button>`); $('#confirm-action').onclick = () => { closeModal(); action(); }; }
+function confirmDeleteActivity(id) { confirmAction('删除这个活动？', '删除后将从当前设备的活动列表移除。', () => { const next = ownActivities.filter(a => a.id !== id); if (save('mates.activities', next)) { ownActivities = next; render(); } }); }
+function mePage() {
+  const p = myProfiles[0];
+  const completed = incoming.filter(o => o.status === '已完成');
+  const communityIncome = community.getIncomeSummary?.() || { completedCount: 0, total: 0, platformFee: 0, providerEarnings: 0 };
+  const sum = key => completed.reduce((acc, o) => acc + Math.round(o[key] * 100), 0) / 100 + (communityIncome[key] || 0);
+  return `<div class="page-heading"><div class="eyebrow">YOUR SPACE, YOUR PACE</div><h1>我的展示面</h1><p class="muted">你是什么样的人，愿意陪别人做什么，由你自己定义。</p></div><div class="c-actions"><a class="secondary" href="#messages">${icon('messages')} 消息与订单</a><a class="secondary" href="#orders">${icon('orders')} 活动与陪伴预约</a><a class="secondary" href="#verification">核验中心</a></div>${editing ? profileEditor(p) : p ? `<div class="dashboard-banner"><div><h2>${esc(p.name)} <span class="tag">${p.active ? '展示中' : '已暂停'}</span></h2><p>${esc(p.area)} · ${money(p.rate)} / 小时 · ${p.minHours} 小时起约</p><p>${esc(p.bio)}</p></div><div class="order-actions"><button class="primary" id="edit-profile">编辑展示</button><button class="secondary" data-view="${esc(p.id)}">看我的主页</button><button class="text-button" id="toggle-listing">${p.active ? '暂停上架' : '重新上架'}</button></div></div>` : `<div class="dashboard-banner"><div><h2>给自己一个展示面</h2><p>先写写你是谁，再挂出自己的服务与价格。</p></div><button class="primary" data-action="listing">建立个人展示</button></div>`}${community.renderMyServices?.() || ''}<section class="detail-block"><div class="section-heading"><div><h2>接单与收入试算</h2><p class="muted">仅已完成的演示订单计入，不含支付手续费和税费。</p></div></div><div class="metric-grid"><div class="metric-card"><span>完成订单</span><strong>${completed.length + communityIncome.completedCount}</strong></div><div class="metric-card"><span>订单金额</span><strong>${money(sum('total'))}</strong></div><div class="metric-card"><span>平台佣金 · ${feePercent}%</span><strong>${money(sum('platformFee'))}</strong></div><div class="metric-card"><span>我的模拟收入</span><strong>${money(sum('providerEarnings'))}</strong></div></div><div class="guideline"><strong>你定价，平台按完成订单抽成。</strong><p>例如 ${money(30)} / 小时 × 2 小时 = ${money(60)}，按 ${feePercent}% 试算，平台佣金 ${money(9)}，接单方到手 ${money(51)}。佣金比例可在商业验证后调整，当前不收取任何费用。</p></div>${p ? `<button class="secondary" id="generate-inquiry" ${!p.active ? 'disabled' : ''}>生成一笔演示询价</button><p class="income-note">用它体验接受预约、模拟付款和完成结算。不会联系真实用户。</p>` : '<p class="income-note">保存个人展示后，可以体验接单流程。</p>'}</section><section class="detail-block"><h2>我的活动</h2>${ownActivities.length ? ownActivities.map(a => `<div class="order-card"><h3>${esc(a.title)}</h3><p class="muted">${esc(a.date)} · ${esc(a.area)}</p><button class="text-button" data-delete-activity="${esc(a.id)}">删除活动</button></div>`).join('') : '<p class="muted">还没有发起搭子活动。</p>'}</section>`;
+}
+function profileEditor(p) {
+  const example = p || { name: '', age: 22, gender: '女生', area: 'CBD', rate: 20, minHours: 1, bio: '', services: [], available: ['周六', '周日'], photos: [], active: true };
+  return `<form class="profile-editor" id="profile-editor"><h2>${p ? '编辑我的个人展示' : '建立你的第一张个人展示'}</h2><p class="muted">头像与照片、个性介绍、服务内容、价格和时间，是别人了解你的开始。</p><label class="field">展示照片（最多 3 张）<input id="photo-upload" type="file" accept="image/jpeg,image/png,image/webp" multiple></label><div class="photo-preview" id="photo-preview">${example.photos.length ? example.photos.map((_, i) => portrait(example, i)).join('') : '<span class="muted">可选：上传你有权使用的照片；未上传时使用示意插画。</span>'}</div><button class="text-button" id="clear-photos" type="button">清空照片</button><div class="row"><label class="field">展示昵称<input name="name" maxlength="24" required value="${esc(example.name)}" placeholder="别人怎么称呼你"></label><label class="field">年龄<input name="age" type="number" min="18" max="80" required value="${example.age}"></label></div><div class="row"><label class="field">性别<select name="gender">${options(['女生', '男生', '其他'], example.gender)}</select></label><label class="field">活动区域<select name="area">${options(areas, example.area)}</select></label></div><label class="field">一句话介绍<input name="tagline" maxlength="60" value="${esc(example.tagline || '')}" placeholder="一起发现城市里的小美好"></label><label class="field">自我介绍<textarea name="bio" minlength="10" maxlength="300" required placeholder="写写你的兴趣、相处方式和可以提供的活动陪伴">${esc(example.bio)}</textarea></label><label class="field">交流语言<input name="languages" maxlength="60" value="${esc(example.languages || '普通话')}" placeholder="普通话 · English"></label><fieldset class="detail-block"><legend>我能提供的陪伴活动（至少选一项）</legend><div class="service-options">${services.map(s => `<label class="service-option"><input type="checkbox" name="services" value="${s}" ${example.services.includes(s) ? 'checked' : ''}>${s}</label>`).join('')}</div></fieldset><div class="row"><label class="field">每小时时薪（澳元）<input name="rate" id="profile-rate" type="number" min="10" max="200" step="0.01" value="${example.rate}" required></label><label class="field">最低预约时长<select name="minHours" id="profile-min-hours">${Array.from({ length: 8 }, (_, i) => i + 1).map(n => `<option value="${n}" ${example.minHours === n ? 'selected' : ''}>${n} 小时</option>`).join('')}</select></label></div><div class="price-list"><div class="price-line"><span>最短预约金额</span><strong id="listing-total"></strong></div><div class="price-line"><span>平台佣金 · ${feePercent}% 试算</span><span id="listing-fee"></span></div><div class="price-line total"><span>预计到手</span><strong id="listing-net"></strong></div></div><fieldset class="detail-block"><legend>可以接单的日子</legend><div class="slot-tags">${weekdays.map(d => `<label class="service-option"><input type="checkbox" name="available" value="${d}" ${example.available.includes(d) ? 'checked' : ''}>${d}</label>`).join('')}</div></fieldset><label class="check"><input type="checkbox" name="active" ${example.active ? 'checked' : ''}><span>保存后上架展示（可随时暂停）</span></label><label class="check"><input type="checkbox" required><span>我已满 18 岁，照片有权使用，提供公共场所的活动陪伴，尊重双方意愿。</span></label><p class="prototype-note">展示只保存在当前设备，尚未发布给真实用户。请勿上传身份证件或填写私人住址。</p><p class="error" id="profile-error" role="alert"></p><button class="primary full" type="submit">${p ? '保存我的展示' : '保存并建立展示'}</button>${p ? '<button class="text-button full" type="button" id="cancel-edit">取消编辑</button>' : ''}</form>`;
+}
+async function preparePhoto(file) {
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error('请选择 JPG、PNG 或 WebP 照片');
+  if (file.size > 10 * 1024 * 1024) throw new Error('单张照片不能超过 10MB');
+  const url = URL.createObjectURL(file);
+  try { const img = new Image(); img.src = url; await img.decode(); const scale = Math.min(1, 900 / Math.max(img.width, img.height)); const canvas = document.createElement('canvas'); canvas.width = Math.round(img.width * scale); canvas.height = Math.round(img.height * scale); canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height); return canvas.toDataURL('image/jpeg', 0.8); } finally { URL.revokeObjectURL(url); }
+}
+function bindMe() {
+  const p = myProfiles[0];
+  $('#edit-profile')?.addEventListener('click', () => { editing = true; render(); });
+  $('#cancel-edit')?.addEventListener('click', () => { editing = false; render(); });
+  $('#toggle-listing')?.addEventListener('click', () => { const next = myProfiles.map(x => x.id === p.id ? { ...x, active: !x.active } : x); if (save('mates.profiles', next)) { myProfiles = next; render(); toast(next[0].active ? '展示已重新上架' : '展示已暂停，不再出现在发现页'); } });
+  document.querySelectorAll('[data-delete-activity]').forEach(b => b.onclick = () => confirmDeleteActivity(b.dataset.deleteActivity));
+  $('#generate-inquiry')?.addEventListener('click', () => {
+    if (!p?.active) return;
+    if (incoming.some(o => !['已完成', '已拒绝', '已取消'].includes(o.status))) { orderTab = 'incoming'; navigate('orders'); toast('先处理已有的演示询价'); return; }
+    const o = { id: makeId(), profileId: p.id, name: 'Alex（演示客户）', area: p.area, service: p.services[0], hours: p.minHours, date: nextAvailableDate(p), time: '14:00', rate: p.rate, message: '想一起喝咖啡，方便的话请确认时间。（演示询价）', status: '待我确认', ...bookingBreakdown(p.rate, p.minHours, p.minHours) };
+    const next = [o, ...incoming]; if (!save('mates.incoming', next)) return; incoming = next; orderTab = 'incoming'; navigate('orders');
+  });
+  const form = $('#profile-editor');
+  if (!form) return;
+  const find = selector => form.querySelector(selector);
+  let photos = [...(p?.photos || [])]; let uploading = false;
+  const paintPhotos = () => { if (!form.isConnected) return; find('#photo-preview').innerHTML = photos.length ? photos.map((_, i) => portrait({ name: '我的', photos }, i)).join('') : '<span class="muted">未上传照片，将使用示意插画。</span>'; };
+  find('#photo-upload').onchange = async e => {
+    if (uploading) return;
+    const input = e.currentTarget;
+    const files = [...input.files]; if (photos.length + files.length > 3) { find('#profile-error').textContent = '最多上传 3 张照片，请先清空后重选'; e.target.value = ''; return; }
+    uploading = true; input.disabled = true; const submit = find('button[type="submit"]'); submit.disabled = true;
+    try { const prepared = []; for (const file of files) prepared.push(await preparePhoto(file)); if (!form.isConnected) return; photos = [...photos, ...prepared]; paintPhotos(); find('#profile-error').textContent = ''; } catch (error) { if (form.isConnected) find('#profile-error').textContent = error.message; }
+    finally { uploading = false; if (form.isConnected) { submit.disabled = false; input.disabled = false; input.value = ''; } }
+  };
+  find('#clear-photos').onclick = () => { if (uploading) return; photos = []; paintPhotos(); };
+  const updateQuote = () => { try { const amounts = bookingBreakdown(Number(find('#profile-rate').value), Number(find('#profile-min-hours').value)); find('#listing-total').textContent = money(amounts.total); find('#listing-fee').textContent = '− ' + money(amounts.platformFee); find('#listing-net').textContent = money(amounts.providerEarnings); } catch { find('#listing-total').textContent = '—'; find('#listing-fee').textContent = '—'; find('#listing-net').textContent = '—'; } };
+  updateQuote(); find('#profile-rate').oninput = updateQuote; find('#profile-min-hours').onchange = updateQuote;
+  form.onsubmit = e => {
+    e.preventDefault(); if (uploading) return; const data = new FormData(e.target);
+    const profile = { ...Object.fromEntries(data), id: p?.id || 'self-' + makeId(), name: String(data.get('name')).trim(), age: Number(data.get('age')), rate: Number(data.get('rate')), minHours: Number(data.get('minHours')), bio: String(data.get('bio')).trim(), services: data.getAll('services'), available: data.getAll('available'), photos, active: data.has('active'), sample: false, style: data.get('gender') === '男生' ? 2 : 1 };
+    const error = validateProfile(profile); if (error) { find('#profile-error').textContent = error; return; }
+    const next = [profile]; if (!save('mates.profiles', next)) return; myProfiles = next; editing = false; render(); toast('个人展示已保存到当前设备');
+  };
+}
+function verificationPage() {
+  return `<div class="page-heading"><div class="eyebrow">TRUST STARTS WITH CLARITY</div><h1>核验中心</h1><p class="muted">知道核验过什么，才能安心选择。</p></div><div class="prototype-note">认证功能将在后续迭代接入。当前资料均未完成实际核验，请勿上传证件或人脸材料。</div><div class="c-feed-grid">${[['photo', '真人照片核验', '检查展示照片是否与本人匹配。'], ['identity', '身份与成年核验', '检查身份与平台的成年人要求。'], ['career', '职业经历核验', '检查某段工作或专业经历，并注明核验范围。']].map(([key, title, description]) => `<article class="order-card"><span class="tag">尚未接入</span><h3>${title}</h3><p>${description}</p><button class="secondary" data-verification="${key}">了解核验流程</button></article>`).join('')}</div>`;
+}
+function bindVerification() {
+  const descriptions = { photo: '未来通过受支持的真人照片匹配流程检查照片与本人一致。现在不采集照片核验材料，也不会显示虚假的认证结果。', identity: '未来使用第三方核验流程，由后端确认身份与成年状态。证件不放在公开资料、聊天或当前浏览器。', career: '未来区分本人填写、待审核和某段经历已核验，并显示核验日期。职业经历标识不表示企业背书。' };
+  document.querySelectorAll('[data-verification]').forEach(button => button.onclick = () => showModal('核验流程说明', `<p>${descriptions[button.dataset.verification]}</p><p class="prototype-note">原型仅展示规划，未接入核验服务。</p>`));
+}
+function guidePage() {
+  const entries = [
+    ['如何使用', '发现页有职业交流、活动陪伴、有偿求助和兴趣搭子。职业服务支持 30／60 分钟套餐；需求可以申请帮助或选择申请者。消息页承接模拟订单与对话。免费活动的开销另行约定。'],
+    ['平台怎样盈利', `第一阶段以完成订单抽成作为收入来源，当前按 ${feePercent}% 做商业试算。比如 A$60 的订单，平台佣金 A$9，服务者预计到手 A$51。佣金从服务者订单金额扣除，不向预约者额外加价；支付手续费、税费与真实退款规则尚未接入。免费搭子不收佣金。`],
+    ['你的展示，你的定价', '所有成年人都可以建立自己的展示，无论女生、男生或其他性别。填写照片、介绍、兴趣、服务和可预约日，设定每小时 A$10–200、最低 1–8 小时，并随时暂停展示。上线后需要完成账号、年龄和身份核验。'],
+    ['服务与见面边界', '提供公共场所的活动陪伴，不承诺恋爱关系或性服务。双方都有权拒绝不舒服的要求，见面前确认地点、活动和费用。首次见面建议告知信任的人你的计划。'],
+    ['原型与数据', '人物插画是示例，不代表真实用户或已核验身份。你的照片、展示、收藏和订单只保存在当前浏览器，不跨设备共享。所有支付与收入都是模拟。清除浏览器数据会删除这些内容。'],
+    ['手机版与安装', '这是支持主屏幕安装的网页 App。Android 浏览器可使用安装或添加到主屏幕；iPhone Safari 可点击分享 → 添加到主屏幕。不是 App Store 或 Google Play 安装包，浏览器对安装支持可能不同。'],
+  ];
+  return `<div class="page-heading"><div class="eyebrow">CLEAR RULES, BETTER CONNECTIONS</div><h1>平台指南</h1><p class="muted">价格、流程和边界，见面之前说清楚。</p></div>${entries.map(([h, text]) => `<section class="detail-block guideline"><h2>${h}</h2><p>${text}</p></section>`).join('')}`;
+}
+async function installApp() {
+  if (installPrompt) { await installPrompt.prompt(); await installPrompt.userChoice; installPrompt = undefined; return; }
+  showModal('添加到手机主屏幕', '<p class="muted">iPhone：使用 Safari 打开页面，点击分享，再选“添加到主屏幕”。</p><p class="muted">Android：打开浏览器菜单，选择“安装应用”或“添加到主屏幕”。安装需要受支持的浏览器和 HTTPS 网站。</p><p class="prototype-note">当前是网页 App 原型，尚未发布原生商店版。</p>');
+}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; });
+if (false) {
+  window.addEventListener('load', () => navigator.serviceWorker.register(new URL('../sw.js', new URL('src/app.js', document.baseURI).href)).catch(() => { /* Installation support is optional in unsupported browsers. */ }));
+}
+render();
+
+return {  };
+})();</script></body></html>

@@ -31,6 +31,8 @@ npm run dev
 
 产品下一阶段将扩展为活动陪伴、职业交流、有偿求助和兴趣搭子四个业务入口。板块用途、统一导航、30／60 分钟 Coffee Chat 套餐与需求接单流程见 [社区架构方案](docs/COMMUNITY_ARCHITECTURE.md)。该文档是待实施方案，当前原型尚未支持职业套餐或需求广场。
 
+真人与职业认证、平台交易保障、减少跳单和两端留存的后续实施顺序与验收要求见 [信任与留存路线](docs/TRUST_RETENTION_ROADMAP.md)。这些均是未来迭代规划，当前未接入实际核验、支付或留存分析。
+
 ## 查看与安装原型
 
 GitHub 仓库 Settings → Pages → Deploy from a branch → `main` → `/(root)` → Save。部署后使用 Pages 页面提供的网址。若账号方案不支持当前仓库部署，选择其他静态托管服务，无需改动仓库隐私设置。开启 Pages 会使原型通过网络访问。

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>碰个面 · 产品思维导图</title>
+  <style>
+    :root{--ink:#1f3330;--muted:#667570;--paper:#fff;--green:#176454;--line:#d7e3de;--cream:#f6f5ef;--radius:20px}
+    *{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Inter,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif;line-height:1.5}button{font:inherit}button:focus-visible{outline:3px solid #eeaa64;outline-offset:4px}.page{max-width:1280px;margin:auto;padding:48px 42px 36px}.eyebrow{font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--green)}header{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:32px}h1{font-size:38px;letter-spacing:-.05em;margin:8px 0 6px;font-weight:850}h1 span{font-size:24px;font-weight:550;letter-spacing:0;margin-left:16px;color:var(--muted)}.intro{margin:0;color:var(--muted);font-size:14px}.tools{display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}.tools button{border:1px solid #d7dfd9;background:#fff;padding:8px 12px;border-radius:9px;font-size:12px;color:var(--ink);cursor:pointer}.tools button:last-child{background:var(--green);border-color:var(--green);color:#fff}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    .diagram{display:grid;grid-template-columns:minmax(0,1fr) 182px minmax(0,1fr);grid-template-rows:repeat(3,auto);gap:24px 30px;position:relative;isolation:isolate;align-items:stretch}.diagram:before{content:"";position:absolute;left:50%;top:15%;bottom:15%;border-left:2px solid var(--line);z-index:-1}.root{grid-column:2;grid-row:1/4;align-self:center;position:relative;z-index:3;border-radius:26px;background:var(--green);color:#fff;padding:24px 17px;text-align:center;box-shadow:0 16px 30px #14574516}.mark{display:grid;place-items:center;width:48px;height:48px;border-radius:16px;background:#ffffff1f;border:1px solid #ffffff2b;font-size:26px;font-weight:700;margin:0 auto 13px}.root h2{font-size:26px;margin:0 0 5px;letter-spacing:-.05em}.root strong{font-size:13px;font-weight:650}.root p{font-size:11px;line-height:1.65;color:#d1e7df;margin:15px 0 0}.root .root-tags{display:flex;justify-content:center;gap:5px;margin-top:14px}.root-tags span{border:1px solid #ffffff35;border-radius:99px;padding:3px 6px;font-size:10px;color:#e8f4ef}
+    .branch{border:1px solid #e0e6df;border-radius:var(--radius);background:var(--paper);padding:18px 19px;position:relative;min-width:0;box-shadow:0 3px 7px #23393003}.branch:after{content:"";position:absolute;width:121px;top:50%;border-top:2px solid var(--line);z-index:-1}.left{grid-column:1}.right{grid-column:3}.left:after{left:100%}.right:after{right:100%}.row1{grid-row:1}.row2{grid-row:2}.row3{grid-row:3}.branch-header{width:100%;padding:0;border:0;background:none;color:inherit;display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer}.branch-header .branch-title{font-size:17px;line-height:1.2;margin:0;font-weight:760}.number{width:31px;height:31px;display:grid;place-items:center;flex:0 0 auto;background:var(--tint);color:var(--accent);border-radius:10px;font-size:12px;font-weight:800}.chevron{font-size:20px;margin-left:auto;color:#8a9991;line-height:1;transform:rotate(90deg);transition:transform .15s}.branch-header[aria-expanded=false] .chevron{transform:rotate(0)}.branch-body{margin-top:14px}.branch-body[hidden]{display:none}.branch-summary{font-size:12px;color:var(--muted);margin:0 0 10px}.nodes{display:grid;gap:8px}.node{border-left:2px solid var(--accent);padding-left:11px;position:relative}.node strong{display:block;font-size:12px;font-weight:700}.node p{font-size:11px;color:var(--muted);margin:2px 0 0;line-height:1.6}.node.two-line p{line-height:1.55}.pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.pills span{font-size:10px;line-height:1.5;background:var(--tint);color:var(--accent);padding:3px 7px;border-radius:6px}.note{margin:12px 0 0;border-top:1px dashed #e2e8e1;padding-top:9px;font-size:10px;color:var(--muted);line-height:1.55}.market{--accent:#176454;--tint:#eaf3ed}.boards{--accent:#ae6345;--tint:#fbefe8}.profile{--accent:#476fa2;--tint:#edf2fa}.orders{--accent:#806599;--tint:#f4eff9}.income{--accent:#a27928;--tint:#fbf3df}.trust{--accent:#4d827c;--tint:#edf5f2}.example{margin-top:11px;display:grid;grid-template-columns:1fr 1fr 1fr;border-radius:10px;background:var(--tint);padding:10px 5px;text-align:center;gap:4px}.example strong{display:block;font-size:15px;letter-spacing:-.02em;color:var(--accent)}.example span{font-size:10px;color:var(--muted)}
+    .journey{margin-top:26px;padding:18px 22px;border:1px solid #dce5dd;background:#fff;border-radius:18px;display:flex;align-items:center;gap:22px}.journey-label{font-size:12px;font-weight:750;flex-shrink:0}.steps{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--muted)}.steps span{background:#f2f5f0;border-radius:7px;padding:5px 9px;color:var(--ink)}.steps i{font-style:normal;color:#9aa69f}.build{margin-top:28px}.build-header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.build h2{font-size:16px;margin:0}.build-header p{font-size:11px;margin:0;color:var(--muted)}.phases{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.phase{padding:15px 16px;border:1px solid #dde3db;border-radius:14px;background:#ffffffa8}.phase.current{background:#eaf1e9;border-color:#cbdcca}.phase .status{font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--green);margin-bottom:6px}.phase strong{font-size:12px;display:block}.phase p{font-size:10px;line-height:1.65;margin:6px 0 0;color:var(--muted)}footer{display:flex;justify-content:space-between;gap:20px;border-top:1px solid #dce2d8;margin-top:24px;padding-top:14px;font-size:10px;color:var(--muted)}footer p{margin:0;max-width:750px}.version{white-space:nowrap}
+    @media(max-width:950px){.page{padding:32px 24px}.diagram{grid-template-columns:minmax(0,1fr) 154px minmax(0,1fr);gap:20px}.branch{padding:16px 14px}.branch:after{width:97px}.root{padding:21px 11px}.root h2{font-size:23px}.root strong{font-size:11px}.tools{gap:6px}.tools button{font-size:11px;padding:7px 9px}h1{font-size:32px}h1 span{font-size:20px;margin-left:12px}}
+    @media(max-width:780px){.page{padding:26px 18px}header{display:block;margin-bottom:20px}h1{font-size:32px}h1 span{display:block;margin:4px 0 0;font-size:20px}.intro{font-size:12px}.tools{margin-top:16px}.diagram{display:grid;grid-template-columns:1fr;grid-template-rows:auto;gap:14px}.diagram:before{display:none}.root{grid-column:1;grid-row:1;align-self:auto;padding:19px 20px;text-align:left;display:grid;grid-template-columns:46px 1fr;gap:0 13px;border-radius:19px}.mark{grid-column:1;grid-row:1/5;margin:0;width:45px;height:45px;border-radius:13px;font-size:24px}.root h2,.root strong,.root p,.root .root-tags{grid-column:2}.root h2{font-size:23px}.root strong{font-size:12px}.root p{font-size:11px;margin:9px 0 0}.root .root-tags{justify-content:flex-start;margin-top:9px}.branch{grid-column:1!important;grid-row:auto!important;padding:17px 18px}.branch:after{display:none}.branch-header .branch-title{font-size:17px}.branch-body{margin-top:14px}.node strong{font-size:13px}.node p{font-size:12px}.branch-summary{font-size:12px}.pills span,.note{font-size:11px}.branch.market{order:1}.branch.boards{order:2}.branch.profile{order:3}.branch.orders{order:4}.branch.income{order:5}.branch.trust{order:6}.journey{margin-top:20px;display:block;padding:17px}.journey-label{margin-bottom:10px}.steps{font-size:11px;gap:6px}.build-header{display:block}.build-header p{margin-top:5px}.phases{grid-template-columns:1fr 1fr;gap:10px}.phase{padding:13px}.phase strong{font-size:12px}.phase p{font-size:11px}footer{display:block;font-size:10px}.version{margin-top:9px}}
+    @media(max-width:390px){.page{padding:23px 14px}.tools button{padding:7px 10px}.phases{grid-template-columns:1fr}.branch{padding:16px}.intro{max-width:270px}.root p br{display:none}}
+    @media print{@page{size:A3 portrait;margin:11mm}body{background:white;print-color-adjust:exact;-webkit-print-color-adjust:exact}.page{max-width:1260px;padding:0}header{margin-bottom:20px;display:flex}h1{font-size:30px}h1 span{display:inline;font-size:21px;margin-left:12px}.tools{display:none}.diagram{grid-template-columns:minmax(0,1fr) 165px minmax(0,1fr);gap:16px 24px;grid-template-rows:repeat(3,auto)}.diagram:before{display:block}.root{grid-column:2;grid-row:1/4;display:block;text-align:center;padding:20px 14px}.root .mark{margin:0 auto 11px}.root .root-tags{justify-content:center}.branch{padding:14px 17px;break-inside:avoid;grid-row:var(--print-row)!important;order:0!important}.left{grid-column:1!important}.right{grid-column:3!important}.row1{--print-row:1}.row2{--print-row:2}.row3{--print-row:3}.branch:after{display:block;width:107px}.branch-body{display:block!important;margin-top:11px}.branch-header .branch-title{font-size:16px}.chevron{display:none}.node strong{font-size:11px}.node p{font-size:10px}.nodes{gap:7px}.pills span,.note{font-size:9px}.journey{display:flex;margin-top:17px;padding:13px 18px;break-inside:avoid}.journey-label{margin:0}.build{margin-top:18px}.build-header{display:flex}.phases{grid-template-columns:repeat(4,1fr)}.phase{padding:12px 14px;break-inside:avoid}.phase p{font-size:9px}.phase strong{font-size:11px}footer{display:flex;margin-top:16px;padding-top:10px}}
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div>
+        <div class="eyebrow">PRODUCT MAP · 首发墨尔本</div>
+        <h1>碰个面<span>产品思维导图</span></h1>
+        <p class="intro">让时间、经验与兴趣被看见，让找人这件事更容易。</p>
+      </div>
+      <div class="tools" aria-label="导图操作">
+        <button type="button" id="expand-all">展开全部</button>
+        <button type="button" id="collapse-all">收起分支</button>
+        <button type="button" id="print-map">打印 / 保存 PDF</button>
+      </div>
+    </header>
+    <div class="sr-only" role="status" id="map-status" aria-live="polite"></div>
+    <section class="diagram" aria-label="碰个面的六个产品方向">
+      <div class="root">
+        <div class="mark" aria-hidden="true">碰</div>
+        <h2>碰个面</h2>
+        <strong>墨尔本华人社区</strong>
+        <p>展示自己能提供什么<br>找到愿意一起做事的人</p>
+        <div class="root-tags"><span>时间</span><span>经验</span><span>兴趣</span></div>
+      </div>
+      <article class="branch market left row1">
+        <button class="branch-header" aria-expanded="true" aria-controls="market-body"><span class="number">01</span><span class="branch-title">市场定位</span><span class="chevron" aria-hidden="true">›</span></button>
+        <div class="branch-body" id="market-body">
+          <p class="branch-summary">先做好一个城市的真实供需。</p>
+          <div class="nodes">
+            <div class="node"><strong>首发墨尔本 · 华人为主</strong><p>优先 CBD、Carlton、Clayton<br>华语交流、本地生活、留学与职业场景</p></div>
+            <div class="node"><strong>一个用户，多种角色</strong><p>男女都可展示、预约、求助与组局<br>同一账号既能买服务，也能提供服务</p></div>
+            <div class="node"><strong>供需有效后，再扩城</strong><p>先观察匹配、完成与复购，再评估其他城市</p></div>
+          </div>
+        </div>
+      </article>
+      <article class="branch boards right row1">
+        <button class="branch-header" aria-expanded="true" aria-controls="boards-body"><span class="number">02</span><span class="branch-title">四个板块</span><span class="chevron" aria-hidden="true">›</span></button>
+        <div class="branch-body" id="boards-body">
+          <div class="nodes">
+            <div class="node"><strong>活动陪伴</strong><p>吃饭、逛街、看展 · 自定时薪与起约时长</p></div>
+            <div class="node"><strong>职业交流 · Coffee Chat</strong><p>行业经验、求职话题 · 30 / 60 分钟套餐</p></div>
+            <div class="node"><strong>有偿求助</strong><p>发布目标、预算和时间 · 申请后选一人</p></div>
+            <div class="node"><strong>兴趣搭子</strong><p>免费组局、交朋友 · 活动开销提前约定 AA</p></div>
+          </div>
+          <p class="note">四个入口共享个人主页、内容、消息与订单。</p>
+        </div>
+      </article>
+      <article class="branch profile left row2">
+        <button class="branch-header" aria-expanded="true" aria-controls="profile-body"><span class="number">03</span><span class="branch-title">个人展示</span><span class="chevron" aria-hidden="true">›</span></button>
+        <div class="branch-body" id="profile-body">
+          <p class="branch-summary">主页展示这个人，服务说明这次能做什么。</p>
+          <div class="nodes">
+            <div class="node"><strong>真实照片 + 个人资料</strong><p>本人授权照片、昵称、语言、区域、兴趣<br>自我介绍、经历与擅长话题</p></div>
+            <div class="node"><strong>一个主页，多个服务项目</strong><p>服务范围、方式、可约时间、最低时长</p><div class="pills"><span>A$ / 小时</span><span>30 / 60 分钟套餐</span><span>任务总价</span></div></div>
+            <div class="node"><strong>评价与核验分别展示</strong><p>评价来自真实完成订单<br>本人填写、身份核验与职业核验清楚区分</p></div>
+          </div>
+        </div>
+      </article>
+      <article class="branch orders right row2">
+        <button class="branch-header" aria-expanded="true" aria-controls="orders-body"><span class="number">04</span><span class="branch-title">匹配与交易</span><span class="chevron" aria-hidden="true">›</span></button>
+        <div class="branch-body" id="orders-body">
+          <div class="nodes">
+            <div class="node"><strong>路径 A · 直接预约服务</strong><p>搜索筛选 → 看主页 → 选服务 / 套餐<br>申请时间 → 服务者接受或拒绝</p></div>
+            <div class="node"><strong>路径 B · 先发布需求</strong><p>说明目标与总预算 → 合适的人申请<br>看资料选一人 → 确认时间与范围</p></div>
+            <div class="node"><strong>确认后付款，按约履约</strong><p>完成确认 → 结算 → 评价 → 一键再约<br>取消、退款与争议保留处理记录</p></div>
+          </div>
+          <p class="note">免费组局跳过支付与结算；发布或申请本身不收费。</p>
+        </div>
+      </article>
+      <article class="branch income left row3">
+        <button class="branch-header" aria-expanded="true" aria-controls="income-body"><span class="number">05</span><span class="branch-title">收入模式</span><span class="chevron" aria-hidden="true">›</span></button>
+        <div class="branch-body" id="income-body">
+          <div class="nodes">
+            <div class="node"><strong>完成的付费订单抽佣</strong><p>暂按 15% 试算，从服务者订单金额扣除<br>免费搭子与普通分享不抽佣</p></div>
+          </div>
+          <div class="example" aria-label="A$100 订单试算，平台 A$15，服务者 A$85">
+            <div><strong>A$100</strong><span>订单总价</span></div><div><strong>A$15</strong><span>平台佣金</span></div><div><strong>A$85</strong><span>服务者所得</span></div>
+          </div>
+          <div class="nodes" style="margin-top:11px"><div class="node"><strong>后续验证新的收费项</strong><p>会员与明确标识的推广位<br>先确认权益、需求与成本，再决定上线</p></div></div>
+          <p class="note">15% 是商业假设。佣金需再扣支付、退款、核验与运营成本，不等于净利润。</p>
+        </div>
+      </article>
+      <article class="branch trust right row3">
+        <button class="branch-header" aria-expanded="true" aria-controls="trust-body"><span class="number">06</span><span class="branch-title">信任、跳单与留存</span><span class="chevron" aria-hidden="true">›</span></button>
+        <div class="branch-body" id="trust-body">
+          <div class="nodes">
+            <div class="node"><strong>信任靠具体核验与售后</strong><p>身份与成年、照片匹配、职业经历分项核验<br>举报拉黑、客服、退款与争议处理</p></div>
+            <div class="node"><strong>让在平台再约更有价值</strong><p>可约日历、付款记录、真实评价与售后<br>通过便利与保障减少跳单，不保证零跳单</p></div>
+            <div class="node"><strong>两端留存分别看</strong><p>预约者：收藏、提醒、再约与社区内容<br>服务者：排期、收入账单与老客户管理</p></div>
+          </div>
+          <p class="note">观察 30 / 60 / 90 天真实完成订单复购与每单成本。</p>
+        </div>
+      </article>
+    </section>
+    <section class="journey" aria-label="手机应用导航">
+      <div class="journey-label">手机的五个入口</div>
+      <div class="steps"><span>发现</span><i>→</i><span>需求</span><i>→</i><span>发布</span><i>→</i><span>消息</span><i>→</i><span>我的</span></div>
+    </section>
+    <section class="build" aria-labelledby="build-title">
+      <div class="build-header"><h2 id="build-title">从原型到上线，分阶段做实</h2><p>按功能与运营条件推进，不预设上线日期。</p></div>
+      <div class="phases">
+        <div class="phase current"><div class="status">当前 · 交互演示</div><strong>本机手机原型</strong><p>四个入口、展示、多服务与模拟订单。保存在当前浏览器，没有真实用户交易。</p></div>
+        <div class="phase"><div class="status">下一步 · 真实社区</div><strong>账号与多人后台</strong><p>账号、数据库、照片存储、权限、跨用户消息与订单。先做免费试用。</p></div>
+        <div class="phase"><div class="status">收费前 · 试点准备</div><strong>核验、支付与售后</strong><p>身份与成年核验、支付结算、取消退款、举报客服与真实成交评价。</p></div>
+        <div class="phase"><div class="status">稳定后 · 增长</div><strong>复购、App 与扩城</strong><p>日历再约、内容关注、服务者管理。验证复购与每单成本，再决定原生 App 和扩城。</p></div>
+      </div>
+    </section>
+    <footer>
+      <p>原型示例资料清楚标注；真实运营使用本人授权照片。认证、真实支付和真实评价需对应能力实际完成后开放。职业交流不代表雇主背书或招聘承诺。</p>
+      <div class="version">碰个面 · 产品方案 · 2026.10</div>
+    </footer>
+  </main>
+  <script>
+    (()=>{
+      const headers=[...document.querySelectorAll('.branch-header')];
+      const status=document.getElementById('map-status');
+      function setExpanded(button,expanded){button.setAttribute('aria-expanded',String(expanded));document.getElementById(button.getAttribute('aria-controls')).hidden=!expanded;}
+      headers.forEach(button=>button.addEventListener('click',()=>setExpanded(button,button.getAttribute('aria-expanded')!=='true')));
+      document.getElementById('expand-all').addEventListener('click',()=>{headers.forEach(button=>setExpanded(button,true));status.textContent='已展开全部六个分支';});
+      document.getElementById('collapse-all').addEventListener('click',()=>{headers.forEach(button=>setExpanded(button,false));status.textContent='已收起全部六个分支，可点击分支标题展开';});
+      document.getElementById('print-map').addEventListener('click',()=>window.print());
+    })();
+  </script>
+</body>
+</html>

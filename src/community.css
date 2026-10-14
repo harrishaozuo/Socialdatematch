@@ -1,6 +1,11 @@
 /* Community surfaces share the photography and type scale of the marketplace. */
 .c-home, .c-section, .c-detail, .c-compose, .c-thread { min-width: 0; }
 .c-home { padding-top: 14px; }
+.c-profile-services { margin-top: 26px; }
+.c-profile-services .c-feed { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.c-profile-services .c-card-art, .c-profile-services .c-card-personname { display: none; }
+.c-profile-services .c-card-content { padding: 17px; }
+.c-profile-services .c-card-title { -webkit-line-clamp: unset; }
 .c-photo-hero { position: relative; display: flex; align-items: center; min-height: 225px; overflow: hidden; background: #eef3eb; border-radius: 21px; margin: 10px 0 22px; }
 .c-photo-hero-copy { position: relative; z-index: 2; padding: 27px 32px; max-width: 70%; }
 .c-photo-hero-copy h1 { font-size: 32px; line-height: 1.4; letter-spacing: -.8px; margin: 7px 0 10px; }

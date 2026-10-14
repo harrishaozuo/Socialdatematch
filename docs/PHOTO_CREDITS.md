@@ -2,7 +2,15 @@
 
 记录日期：2026-10-14。
 
-本轮收集的 11 张图片是实际拍摄的人像照片，来自公开 UI 模板附带的演示素材。当前九个人物示例使用其中九张，另两张作为备用。本地文件是原文件的逐字节副本，没有合成人脸、像素编辑或另行压缩；界面可以用 CSS 裁切。图片随项目提供，手机预览、离线 HTML 和 GitHub Pages 均无需访问第三方图片 CDN。
+素材目录共收集 14 张实际拍摄的人像，来自公开 UI 模板附带的演示素材。当前展示使用三张新照片，前一版的十一张作为历史素材保留。照片为原文件逐字节副本，没有合成人脸、像素编辑或另行压缩；界面通过 CSS 裁切。当前照片本地存放，手机预览与离线 HTML 不依赖第三方图片 CDN。
+
+## 当前华人社区演示展示
+
+当前新版展示使用 **3 个不同的照片人物**：`person-12.jpg`、`person-13.jpg`、`person-14.jpg`，均为真实摄影，400 × 400 像素。人物样例用于中文、墨尔本华人社区的界面演示；没有证据可以确认照片人物的真实国籍、族裔、职业、年龄或居住地，不能从外貌推定这些信息。中文示例姓名、简介与服务是虚构内容，页面应标明“演示照片 / 虚构资料”。
+
+同一演示人物可以提供多个服务，但必须保留同一个姓名与身份，不得把同一张脸包装成多个不同接单者。素材目录中的 `person-01` 至 `person-11` 属于前一版通用模板的历史素材，不应继续作为本版华人社区展示的人物。
+
+当前选用的 Material Kit 演示人像来自公开模板配图。模板 MIT 许可已检查并附于下方，没有发现这些图片的单独例外许可；原摄影师与肖像授权资料没有提供，因此此处记录模板分发方而非断言其拥有全部摄影与肖像权。正式平台应改用本人授权照片或明确覆盖商业用途的 stock 授权。
 
 ## 展示范围
 
@@ -33,6 +41,9 @@ Unsplash 和 Pexels 的图片 CDN 在本次云环境中返回网络代理 403，
 | `assets/people/person-09.jpg` | Creative Tim / Notus JS | [person-09.jpg](https://raw.githubusercontent.com/creativetimofficial/notus-js/main/assets/img/team-1-800x800.jpg) | `fdfd85ef24ffd6a3783190511a7d462e4e18dd6957f356125b9c2d22888601d5` |
 | `assets/people/person-10.jpg` | Creative Tim / Soft UI Dashboard | [person-10.jpg](https://raw.githubusercontent.com/creativetimofficial/soft-ui-dashboard/main/assets/img/ivana-square.jpg) | `4f2ca50d3c98b052a9f55c83ba55227b83fd8245cec4512a478688da2933aaf6` |
 | `assets/people/person-11.png` | Creative Tim / Notus JS | [person-11.png](https://raw.githubusercontent.com/creativetimofficial/notus-js/main/assets/img/team-4-470x470.png) | `6e326d59bba90db697240dd0428d3bf515089c5c41a4666f69e98a80b61348b1` |
+| `assets/people/person-12.jpg` | Creative Tim / Material Kit | [person-12.jpg](https://raw.githubusercontent.com/creativetimofficial/material-kit/master/assets/img/team-1.jpg) | `c59024a17814b935fc9aa1b1d1d31f4ec8d18172ef43c2ec48c063e342e74219` |
+| `assets/people/person-13.jpg` | Creative Tim / Material Kit | [person-13.jpg](https://raw.githubusercontent.com/creativetimofficial/material-kit/master/assets/img/team-2.jpg) | `f56f4d18a3f2362c3cd47a448555c27dd13b62af3b8b6d939fb1944bbebc6693` |
+| `assets/people/person-14.jpg` | Creative Tim / Material Kit | [person-14.jpg](https://raw.githubusercontent.com/creativetimofficial/material-kit/v2.0.7/assets/img/faces/card-profile2-square.jpg) | `2a5899b6d8d4ee2725d769031f55d0955ab198a94497cf758fd680a799d8efa7` |
 
 ## 许可全文
 
@@ -108,3 +119,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ```
 
+
+### Material Kit（当前展示）
+
+主分支配图许可来源：[Material Kit LICENSE.md](https://github.com/creativetimofficial/material-kit/blob/master/LICENSE.md)。历史版本配图许可来源：[v2.0.7 LICENSE.md](https://github.com/creativetimofficial/material-kit/blob/v2.0.7/LICENSE.md)。两者已检查，许可声明相同。
+
+```text
+MIT License
+
+Copyright (c) 2018 Creative Tim
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```

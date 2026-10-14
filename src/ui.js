@@ -1,3 +1,4 @@
+import { demoPortraits } from './photos.js';
 export const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const money = value => `A$${Number(value).toLocaleString('en-AU', { minimumFractionDigits: Number.isInteger(Number(value)) ? 0 : 2, maximumFractionDigits: 2 })}`;
 export const options = (items, selected) => items.map(x => `<option ${x === selected ? 'selected' : ''}>${esc(x)}</option>`).join('');
@@ -23,12 +24,11 @@ const paths = {
 export const icon = name => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.discover}</svg>`;
 
 export function portrait(profile, photoIndex = 0) {
-  const photo = profile.photos?.[photoIndex];
-  if (typeof photo === 'string' && /^data:image\/(jpeg|png|webp);base64,/.test(photo)) return `<img class="portrait-art" src="${esc(photo)}" alt="${esc(profile.name)}的展示照片">`;
-  const i = Number(profile.style || 0) % 6;
-  const backgrounds = ['#ddccbf', '#ccd6bb', '#c5d3cf', '#d9c7d4', '#e0d4b7', '#ced2dc'];
-  const shirts = ['#f9f4e8', '#314c3c', '#f4ece0', '#795d76', '#334b48', '#f5f2e9'];
-  const skin = ['#e5b99b', '#e8c5a6', '#c99070', '#e5b296', '#ddb291', '#eac6aa'][i];
-  const longHair = profile.gender !== '男生';
-  return `<svg class="portrait-art" viewBox="0 0 320 370" role="img" aria-label="${esc(profile.name)}的示例插画"><rect width="320" height="370" fill="${backgrounds[i]}"/><circle cx="262" cy="75" r="84" fill="#ffffff25"/><path d="M0 275Q150 180 320 270V370H0Z" fill="#ffffff20"/><path d="M52 370v-36c0-65 44-107 108-107s108 42 108 107v36" fill="${shirts[i]}"/>${longHair ? '<path d="M91 150c-7-83 20-115 68-115 53 0 78 37 72 117l16 123H76Z" fill="#39302a"/>' : '<path d="M91 109c0-47 31-74 69-74 43 0 71 24 70 79v54H92Z" fill="#39302a"/>'}<path d="M138 209v38q22 20 44 0v-38" fill="${skin}"/><ellipse cx="160" cy="142" rx="60" ry="79" fill="${skin}"/><path d="M96 113c-4-56 25-83 63-83 39 0 66 30 64 83-27-4-46-27-59-51-12 24-40 42-68 51Z" fill="#39302a"/><path d="M125 144h9M186 144h9" stroke="#39302a" stroke-width="4" stroke-linecap="round"/><path d="M147 183q13 12 26 0" stroke="#a26953" fill="none" stroke-width="3" stroke-linecap="round"/><path d="m144 162 4 9h-8" stroke="#bd896e" fill="none" stroke-width="2"/><circle cx="112" cy="163" r="8" fill="#e7a891" opacity=".55"/><circle cx="207" cy="163" r="8" fill="#e7a891" opacity=".55"/>${i % 2 ? '<circle cx="99" cy="168" r="4" fill="#e5d287"/><circle cx="220" cy="168" r="4" fill="#e5d287"/>' : ''}<path d="m131 239 29 40 29-40" stroke="#9caa9d" stroke-width="2" fill="none"/><path d="M0 355h320v15H0Z" fill="#19352c08"/></svg>`;
+  const uploaded = profile.photos?.[photoIndex];
+  if (typeof uploaded === 'string' && /^data:image\/(jpeg|png|webp);base64,/.test(uploaded)) {
+    return `<img class="portrait-art" src="${esc(uploaded)}" alt="${esc(profile.name)}的展示照片" decoding="async">`;
+  }
+  const source = profile.sample && photoIndex === 0 ? demoPortraits[profile.id] : null;
+  if (source) return `<img class="portrait-art" src="${esc(source)}" alt="人物摄影素材，用于${esc(profile.name)}的虚构示例展示" decoding="async" data-demo-photo="true">`;
+  return `<div class="portrait-art photo-placeholder" role="img" aria-label="尚未上传展示照片"><span>${esc(String(profile.name || '你').slice(0, 1))}</span><small>待上传照片</small></div>`;
 }
